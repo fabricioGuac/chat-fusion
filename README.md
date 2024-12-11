@@ -19,7 +19,7 @@
 
 ## Credits
 
-N/A
+This project is based on the [Whatsapp clone](https://www.youtube.com/watch?v=_f5CyVdarXw&list=PL7Oro2kvkIzKsDpydQkyO6I60uC0SyDje) series by code with zosh. While closely following the tutorial, I aim to extend its functionality by using MongoDB instead of MySQL, adding Kafka for messaging, integrating AWS S3 for file storage.
 
 
 ## License
