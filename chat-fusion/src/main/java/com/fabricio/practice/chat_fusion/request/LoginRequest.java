@@ -8,6 +8,11 @@ public class LoginRequest {
 	// Password provided for login
 	private String password;
 	
+	// Default no-arguments constructor
+	public LoginRequest() {
+		
+	}
+	
 	// Constructor to create a login request with the specified fields
 	public LoginRequest(String email, String password) {
 		super();

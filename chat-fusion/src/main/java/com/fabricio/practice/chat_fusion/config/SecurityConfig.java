@@ -46,7 +46,7 @@ public class SecurityConfig {
                 // Allows all other requests without requiring authentication
                     .anyRequest().permitAll()
             )
-            // Adds custom JWT filter before the BasicAuthenticationFilte
+            // Adds custom JWT filter before the BasicAuthenticationFilter
             .addFilterBefore(new JwtValidator(secretProvider), BasicAuthenticationFilter.class)
             // Disables Cross-Site Request Forgery (CSRF) protection
             // CSRF is not needed when using JWT as authentication is handled via headers and not cookies

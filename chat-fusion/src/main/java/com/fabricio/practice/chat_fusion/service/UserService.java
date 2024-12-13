@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.fabricio.practice.chat_fusion.exception.UserException;
 import com.fabricio.practice.chat_fusion.model.User;
-import com.fabricio.practice.chat_fusion.request.UpdateUserRequest;
+import com.fabricio.practice.chat_fusion.request.UpdateRequest;
 
 // Service interface to define the user related business logic
 public interface UserService {
@@ -19,6 +19,6 @@ public interface UserService {
 	public List<User> searchUsers(String query);
 	
 	// Updates an user information based on the provided ID and update request
-	public User updateUser(String id, UpdateUserRequest req)  throws UserException;
+	public User updateUser(String id, UpdateRequest req)  throws UserException;
 	
 }

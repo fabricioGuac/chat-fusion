@@ -26,7 +26,6 @@ public class JwtValidator extends OncePerRequestFilter {
 //	// Injects the JwtSecretProvider to retrieve the secret key for token validation
 //	@Autowired
 //	private JwtSecretProvider secretProvider;
-	
 	private final JwtSecretProvider secretProvider;
 
     // Constructor to inject JwtSecretProvider
@@ -40,6 +39,16 @@ public class JwtValidator extends OncePerRequestFilter {
 			throws ServletException, IOException {
 		// 	Retrieves the JWT from the request's authentication header	
 		String jwt = request.getHeader("Authorization");
+		
+		
+		
+		 // Skip JWT validation for login/auth routes
+	    String path = request.getRequestURI();
+	    if (path.startsWith("/login") || path.startsWith("/auth")) {
+	        filterChain.doFilter(request, response);
+	        return;
+	    }
+		
 	
 		// Verifies if the token is present in the request		
 		if(jwt != null) {

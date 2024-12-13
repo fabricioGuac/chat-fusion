@@ -10,13 +10,13 @@ import com.fabricio.practice.chat_fusion.config.JwtProvider;
 import com.fabricio.practice.chat_fusion.exception.UserException;
 import com.fabricio.practice.chat_fusion.model.User;
 import com.fabricio.practice.chat_fusion.repository.UserRepository;
-import com.fabricio.practice.chat_fusion.request.UpdateUserRequest;
+import com.fabricio.practice.chat_fusion.request.UpdateRequest;
 
 // Implementation of the UserService interface
 @Service
 public class UserServiceImplementation implements UserService {
 	
-	// User repository to interact with the database
+	// User repository to interact with user data in the database
 	private UserRepository userRepository;
 	// Dependency for JWT operations
 	private JwtProvider jwtProvider;
@@ -75,22 +75,27 @@ public class UserServiceImplementation implements UserService {
 
 	// Updates an user information based on the provided ID and update request
 	@Override
-	public User updateUser(String id, UpdateUserRequest req) throws UserException {
-		// Finds the user to update
-		User user = findUserById(id);
-		
-		// Updates the username if it's provided in the request
-		if(req.getUsername() != null) {
-			user.setUsername(req.getUsername());
-		}
-		
-		// Updates the profile picture if it's provided in the request
-		if(req.getPfp() != null) {
-			user.setPfp(req.getPfp());
-		}
-		
-		// Saves the updated user to the database
-		return userRepository.save(user);
+	public User updateUser(String id, UpdateRequest req) throws UserException {
+	    // Finds the user to update
+	    User user = findUserById(id);
+
+	    // Update the username if provided and valid
+	    if (req.getName() != null && !req.getName().isBlank()) {
+	        String updatedUsername = req.getName().trim();
+	        if (updatedUsername.length() > 50) {
+	            throw new UserException("Username must not exceed 50 characters");
+	        }
+	        user.setUsername(updatedUsername);
+	    }
+
+	    // Update the profile picture if provided
+	    if (req.getPfp() != null && !req.getPfp().isBlank()) {
+	        user.setPfp(req.getPfp());
+	    }
+
+	    // Save the updated user to the database
+	    return userRepository.save(user);
 	}
+
 
 }

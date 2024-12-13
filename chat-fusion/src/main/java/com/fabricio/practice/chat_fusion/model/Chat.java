@@ -13,119 +13,127 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "chats")
 public class Chat {
 
-		// Specifies the unique identifier for this document in the collection
-		@Id
-		private String id;
-		private String chat_name;
-		private String chat_image;
-		private boolean isGroup;
-		private User createdBy;
-		private Set<User> members = new HashSet<>();
-		private List<Message> messages = new ArrayList<>();
-		
-		// No-args constructor for serialization and deserialization frameworks
-		public Chat () {
-			
-		}
-		// Full-args constructor for initializing all fields of the Chat object
-		public Chat(String id, String chat_name, String chat_image, boolean isGroup, User createdBy, Set<User> members,
-				List<Message> messages) {
-			super();
-			this.id = id;
-			this.chat_name = chat_name;
-			this.chat_image = chat_image;
-			this.isGroup = isGroup;
-			this.createdBy = createdBy;
-			this.members = members;
-			this.messages = messages;
-		}
+    // Specifies the unique identifier for this document in the collection
+    @Id
+    private String id;
+    private String chat_name;
+    private String chat_image;
+    private boolean isGroup;
+    private String createdById;
+    private Set<String> adminIds = new HashSet<>();
+    private Set<String> memberIds = new HashSet<>();
+    private List<Message> messages = new ArrayList<>();
 
-		// Getters and Setters for the fields
-		public String getId() {
-			return id;
-		}
+    // No-args constructor for serialization and deserialization frameworks
+    public Chat() {
+    }
 
-		public void setId(String id) {
-			this.id = id;
-		}
+    // Full-args constructor for initializing all fields of the Chat object
+    public Chat(String id, String chat_name, String chat_image, boolean isGroup, String createdById,
+    		Set<String> adminIds, Set<String> memberIds, List<Message> messages) {
+    	super();
+    	this.id = id;
+    	this.chat_name = chat_name;
+    	this.chat_image = chat_image;
+    	this.isGroup = isGroup;
+    	this.createdById = createdById;
+    	this.adminIds = adminIds;
+    	this.memberIds = memberIds;
+    	this.messages = messages;
+    }
+    
 
-		public String getChat_name() {
-			return chat_name;
-		}
+    // Getters and Setters for the fields
+    public String getId() {
+        return id;
+    }
 
-		public void setChat_name(String chat_name) {
-			this.chat_name = chat_name;
-		}
 
-		public String getChat_image() {
-			return chat_image;
-		}
+	public Set<String> getAdminIds() {
+		return adminIds;
+	}
 
-		public void setChat_image(String chat_image) {
-			this.chat_image = chat_image;
-		}
+	public void setAdminIds(Set<String> adminIds) {
+		this.adminIds = adminIds;
+	}
 
-		public boolean isGroup() {
-			return isGroup;
-		}
+	public void setId(String id) {
+        this.id = id;
+    }
 
-		public void setGroup(boolean isGroup) {
-			this.isGroup = isGroup;
-		}
+    public String getChat_name() {
+        return chat_name;
+    }
 
-		public User getCreatedBy() {
-			return createdBy;
-		}
+    public void setChat_name(String chat_name) {
+        this.chat_name = chat_name;
+    }
 
-		public void setCreatedBy(User createdBy) {
-			this.createdBy = createdBy;
-		}
+    public String getChat_image() {
+        return chat_image;
+    }
 
-		public Set<User> getMembers() {
-			return members;
-		}
+    public void setChat_image(String chat_image) {
+        this.chat_image = chat_image;
+    }
 
-		public void setMembers(Set<User> members) {
-			this.members = members;
-		}
+    public boolean isGroup() {
+        return isGroup;
+    }
 
-		public List<Message> getMessages() {
-			return messages;
-		}
+    public void setGroup(boolean isGroup) {
+        this.isGroup = isGroup;
+    }
 
-		public void setMessages(List<Message> messages) {
-			this.messages = messages;
-		}
-		
-		// To string method
-		@Override
-		public String toString() {
-		    return "Chat [id=" + id + ", chat_name=" + chat_name + ", chat_image=" + chat_image + ", isGroup=" + isGroup
-		            + ", createdBy=" + createdBy + "]";
-		}
+    public String getCreatedById() {
+        return createdById;
+    }
 
-		// Hash code method
-		@Override
-		public int hashCode() {
-		    return Objects.hash(chat_image, chat_name, createdBy, id, isGroup);
-		}
+    public void setCreatedById(String createdById) {
+        this.createdById = createdById;
+    }
 
-		// Equals method
-		@Override
-		public boolean equals(Object obj) {
-		    if (this == obj)
-		        return true;
-		    if (obj == null)
-		        return false;
-		    if (getClass() != obj.getClass())
-		        return false;
-		    Chat other = (Chat) obj;
-		    return Objects.equals(chat_image, other.chat_image) && Objects.equals(chat_name, other.chat_name)
-		            && Objects.equals(createdBy, other.createdBy) && Objects.equals(id, other.id)
-		            && isGroup == other.isGroup;
-		}
+    public Set<String> getMemberIds() {
+        return memberIds;
+    }
 
-		
-		
-	
+    public void setMemberIds(Set<String> memberIds) {
+        this.memberIds = memberIds;
+    }
+
+    public List<Message> getMessages() {
+        return messages;
+    }
+
+    public void setMessages(List<Message> messages) {
+        this.messages = messages;
+    }
+
+    // To string method
+    @Override
+    public String toString() {
+        return "Chat [id=" + id + ", chat_name=" + chat_name + ", chat_image=" + chat_image + ", isGroup=" + isGroup
+                + ", createdById=" + createdById + "]";
+    }
+
+    // Hash code method
+    @Override
+    public int hashCode() {
+        return Objects.hash(chat_image, chat_name, createdById, id, isGroup);
+    }
+
+    // Equals method
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Chat other = (Chat) obj;
+        return Objects.equals(chat_image, other.chat_image) && Objects.equals(chat_name, other.chat_name)
+                && Objects.equals(createdById, other.createdById) && Objects.equals(id, other.id)
+                && isGroup == other.isGroup;
+    }
 }

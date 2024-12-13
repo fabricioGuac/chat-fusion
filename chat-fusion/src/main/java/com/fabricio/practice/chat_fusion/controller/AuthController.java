@@ -1,5 +1,7 @@
 package com.fabricio.practice.chat_fusion.controller;
 
+
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -7,6 +9,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -84,47 +87,49 @@ public class AuthController {
 		return new ResponseEntity<AuthResponse>(res, HttpStatus.OK);
 	}
 	
+	
 	// Route to handle user login and authentication
 	@PostMapping("/login")
 	public ResponseEntity<AuthResponse> loginHandler(@RequestBody LoginRequest req) {
-		// Extracts the login details from the request
-		String email = req.getEmail();
-		String password = req.getPassword();
-		
-		// Authenticates the user by checking their credentials
-		Authentication authentication = authenticate(email, password);
-		
-		// Sets the authentication in the security context to indicate the user is logged in
-		SecurityContextHolder.getContext().setAuthentication(authentication);		
-		
-		// Generates the JWT for the authenticated user
-		String jwt = jwtProvider.generateJwt(authentication);
-		
-		// Creates a response including the JWT and a success flag
-		AuthResponse res = new AuthResponse(jwt, true);
-		
-		return new ResponseEntity<AuthResponse>(res, HttpStatus.OK);
+	    // Extracts the login details from the request
+	    String email = req.getEmail();
+	    String password = req.getPassword();
+	    
+	    try {
+	        // Authenticates the user by checking their credentials
+	        Authentication authentication = authenticate(email, password);
+	        
+	        // Sets the authentication in the security context to indicate the user is logged in
+	        SecurityContextHolder.getContext().setAuthentication(authentication);        
+	        
+	        // Generates the JWT for the authenticated user
+	        String jwt = jwtProvider.generateJwt(authentication);
+	        
+	        // Creates a response including the JWT and a success flag
+	        AuthResponse res = new AuthResponse(jwt, true);
+	        
+	        return new ResponseEntity<AuthResponse>(res, HttpStatus.OK);
+	    } catch (BadCredentialsException | UsernameNotFoundException e) {
+	        // Return a custom error message for either BadCredentials or UsernameNotFound exceptions
+	    	 AuthResponse err = new AuthResponse(e.getMessage(), false);
+	       
+	        return new ResponseEntity<>(err, HttpStatus.UNAUTHORIZED);
+	    }
 	}
-	
-	
-	// Method to authenticate an user based on email and password
+
+	// Method to authenticate a user based on email and password
 	public Authentication authenticate(String email, String password) {
-		
-		// Loads the user details from the custom user service by email (this calls the loadUserByUsername method)
-		UserDetails userDetails = customUserService.loadUserByUsername(email);
-		
-		// If the user is not found throw BadCredentialsException to indicate the email is invalid
-		if (userDetails == null) {
-			throw new BadCredentialsException("Invalid email");
-		}
-		
-		// If the password does not match the stored password throw BadCredentialsException to indicate invalid credentials
-		if(!passwordEncoder.matches(password, userDetails.getPassword())) {
-			throw new BadCredentialsException("Invalid username ot pasword");
-		}
-		
-		// Returns an authentication token with the user's details and authorities (roles or permissions)
-		return new UsernamePasswordAuthenticationToken(userDetails,null,  userDetails.getAuthorities());
+	    // Loads the user details from the custom user service by email
+	    UserDetails userDetails = customUserService.loadUserByUsername(email);
+	    
+	    // If the password does not match the stored password, throw BadCredentialsException
+	    if (!passwordEncoder.matches(password, userDetails.getPassword())) {
+	        throw new BadCredentialsException("Invalid email or password");
+	    }
+	    
+	    // Returns an authentication token with the user's details and authorities
+	    return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 	}
+
 	
 }

@@ -15,8 +15,11 @@ public interface UserRepository extends MongoRepository<User, String> {
 	// Finds a user by their email  
 	public User findByEmail(String email);
 	
+	
+	
 	// Searches for users by matching their username or email using a case-insensitive regular expression
 	@Query("{ $or: [ { 'username': { $regex: ?0, $options: 'i' } }, { 'email': { $regex: ?0, $options: 'i' } } ] }")
 	public List<User> searchUser(String query);
+
 	
 }

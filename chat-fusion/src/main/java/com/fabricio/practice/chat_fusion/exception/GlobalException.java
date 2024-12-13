@@ -34,6 +34,17 @@ public class GlobalException {
 		
 	}
 	
+	
+	// Handles ChatException and provides a custom error response with status BAD_REQUEST
+	@ExceptionHandler(ChatException.class)
+	public ResponseEntity<ErrorDetail> ChatExceptionHandler(ChatException ce, WebRequest req) {
+		// Creates an ErrorDetail object with the chat exception details
+		ErrorDetail err = new ErrorDetail(ce.getMessage(), req.getDescription(false), LocalDateTime.now());
+			
+		return new ResponseEntity<ErrorDetail>(err,HttpStatus.BAD_REQUEST);
+			
+		}
+	
     // Handles MethodArgumentNotValidException, which occurs during validation failures
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<ErrorDetail> MethodArgumentNotValidExceptionHandler (MethodArgumentNotValidException e, WebRequest req) {
