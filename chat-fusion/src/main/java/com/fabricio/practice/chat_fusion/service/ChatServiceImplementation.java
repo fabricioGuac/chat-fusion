@@ -20,11 +20,14 @@ public class ChatServiceImplementation implements ChatService {
 	private ChatRepository chatRepository;
 	// User Service for handling user-related operations
 	private UserService userService;
+	// Message Service for handling message-related operations
+	private MessageService messageService;
 	
 	// Constructor for dependency injection of ChatRepository and UserService
-	public ChatServiceImplementation(ChatRepository chatRepository, UserService userService) { 
+	public ChatServiceImplementation(ChatRepository chatRepository, UserService userService, MessageService messageService) { 
 		this.chatRepository = chatRepository;
 		this.userService = userService;
+		this.messageService = messageService;
 	}
 	
 
@@ -103,14 +106,10 @@ public class ChatServiceImplementation implements ChatService {
 	// Adds an user to a group chat
 	@Override
 	public Chat addUserToGroup(String reqUserId, String userId2, String chatId) throws ChatException, UserException {
-		// Queries the database for the group chat
-		Optional<Chat> optChat = chatRepository.findById(chatId);
-		
+		// Retrieves the chat
+		Chat chat = findChatById(chatId);
 		userService.findUserById(userId2); //Validation to ensure the user exists
-		
-		// If the chat exists, ensure the requester is an admin and adds the user to the group
-		if(optChat.isPresent()) {
-			Chat chat = optChat.get();
+
 			if(chat.getAdminIds().contains(reqUserId)) {
 				chat.getMemberIds().add(userId2);
 				// Saves and return the updated chat
@@ -121,22 +120,16 @@ public class ChatServiceImplementation implements ChatService {
 			throw new ChatException("Non admins can't add users to the group");
 		}
 	
-		// Throws an exception if the group chat is not found
-		throw new ChatException("Chat not found by id " + chatId);
-	}
 	
 	
 	// Grants admin privileges to an user in a group chat
 	@Override 
 	public Chat makeUserAdmin(String reqUserId, String userId2, String chatId) throws ChatException, UserException {
-		// Queries the database for the group chat
-		Optional<Chat> optChat = chatRepository.findById(chatId);
+		// Retrieves the chat
+		Chat chat = findChatById(chatId);
 	    
 	    userService.findUserById(userId2); // Validation to ensure the user exists
 	    
-	    // If the chat exists ensure, the requester is an admin
-	    if (optChat.isPresent()) {
-	        Chat chat = optChat.get();
 	        if (chat.getAdminIds().contains(reqUserId)) {
 	        	// Adds the user as an admin if not already an admin
 	            if (!chat.getAdminIds().contains(userId2)) {
@@ -150,20 +143,13 @@ public class ChatServiceImplementation implements ChatService {
 	        throw new ChatException("Non-admins can't give admin privileges");
 	    }
 
-		// Throws an exception if the group chat is not found
-	    throw new ChatException("Chat not found by id " + chatId);
-	}
-
 	
 	
 	// Updates a group chat details
 	@Override
 	public Chat updateGroup(String reqUserId, String chatId, UpdateRequest req) throws ChatException, UserException {
-		// Queries the database for the group chat
-		Optional<Chat> optChat = chatRepository.findById(chatId);
-		// Ensures the group chat exists
-	    if(optChat.isPresent()) {
-	    	Chat chat = optChat.get();
+		// Retrieves the chat
+		Chat chat = findChatById(chatId);
 	        
 	    	// Verifies the requesting user is a member of the chat
 	        if(chat.getMemberIds().contains(reqUserId)) {
@@ -192,22 +178,15 @@ public class ChatServiceImplementation implements ChatService {
 	        throw new ChatException("Non-members can't change the group details");
 	    }
 
-	    // Throw an exception if the group chat is not found
-	    throw new ChatException("Chat not found by id " + chatId);
-	}
 
 
 	// Removes an user from a group chat
 	@Override
 	public Chat removeFromGroup(String reqUserId, String userId2, String chatId) throws ChatException, UserException {
-		// Queries the database for the chat
-		Optional<Chat> optChat = chatRepository.findById(chatId);
+		// Retrieves the chat
+		Chat chat = findChatById(chatId);
 
 	    userService.findUserById(userId2); // Validation to ensure the user exists
-
-	    // Ensures the group chat exists
-	    if (optChat.isPresent()) {
-	    	Chat chat = optChat.get();
 	    	
 	    	// Ensures the operation is for a group chat
 	        if (!chat.isGroup()) {
@@ -248,9 +227,6 @@ public class ChatServiceImplementation implements ChatService {
 	        // Throws an exception if the requester lacks admin privileges
 	        throw new ChatException("Non-admins can only remove themselves");
 	    }
-	    // Throws an exception if the group chat is not found
-	    throw new ChatException("Chat not found by id " + chatId);
-	}
 
 
 	
@@ -258,23 +234,19 @@ public class ChatServiceImplementation implements ChatService {
 	// Deletes a chat
 	@Override
 	public void deleteChat(String reqUserId, String chatId) throws ChatException {
-		// Queries the database for the chat
-		Optional<Chat> optChat = chatRepository.findById(chatId);
-
-		// Ensures the chat exists
-	    if (optChat.isPresent()) {
-	        Chat chat = optChat.get();
+		// Retrieves the chat
+		Chat chat = findChatById(chatId);
 
 	        // Handles deletion for the groups
 	        if (chat.isGroup()) {
 	        	// Verifies the requesting user is an admin
 	            if (chat.getAdminIds().contains(reqUserId)) {
+	            	
+	            	// Deletes the messages related to the chat
+	                messageService.deleteChatMessages(chatId);
+	            	
 	                // Deletes the chat
 	                chatRepository.deleteById(chatId);
-
-	                // Deletes the messages related to the chat
-	                // messageRepository.deleteByChatId(chatId);
-
 	                return;
 	            }
 	            // Throws an exception if the requesting user is not an admin
@@ -283,19 +255,16 @@ public class ChatServiceImplementation implements ChatService {
 
 	        // Handles deletion for one to one chats chats
 	        if (chat.getMemberIds().contains(reqUserId)) {
-	        	// Deletes the chat
-	        	chatRepository.deleteById(chatId);
-
-	            // Deletes the messages related to the chat
-	            // messageRepository.deleteByChatId(chatId);
+	        	// Deletes the messages related to the chat
+                messageService.deleteChatMessages(chatId);
+            	
+                // Deletes the chat
+                chatRepository.deleteById(chatId);
 
 	            return;
 	        }
 
 	        // Throws an exception if the user is not a member of the chat
 	        throw new ChatException("You do not have permission to delete this chat");
-	    }
-	    // Throws an exception if the chat is not found
-	    throw new ChatException("Chat not found by id " + chatId+ " Someone got ahead of you??");
-	}	
+	    }	
 }

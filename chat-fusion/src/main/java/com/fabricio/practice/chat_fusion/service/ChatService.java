@@ -18,7 +18,7 @@ public interface ChatService {
 	public Chat findChatById(String chatId) throws ChatException;
 	
 	// Retrieves all the chats a user is a member of
-	public List<Chat> findAllChatsByUserId(String userId) throws UserException;
+	public List<Chat> findAllChatsByUserId(String userId);
 	
 	// Creates a group chat with the specified detail 
 	public Chat createGroup(GroupChatRequest req, String reqUserId) throws UserException;

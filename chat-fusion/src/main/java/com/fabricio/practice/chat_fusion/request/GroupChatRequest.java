@@ -15,7 +15,7 @@ public class GroupChatRequest {
 		
 	}
 	
-	// Constructor to create a  GroupChatRequest with the specified fields
+	// Constructor to create a GroupChatRequest with the specified fields
 	public GroupChatRequest(List<String> userIds, String chat_name, String chat_image) {
 		super();
 		this.userIds = userIds;

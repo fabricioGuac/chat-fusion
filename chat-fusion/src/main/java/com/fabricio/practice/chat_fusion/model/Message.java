@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 //Marks this class as a MongoDB document corresponding to the "messages" collection
@@ -14,6 +15,8 @@ public class Message {
     @Id
     private String id;
     private String content;
+    // Indexes the time stamp to improve query performance
+    @Indexed
     private LocalDateTime timestamp;
 
     private String userId;

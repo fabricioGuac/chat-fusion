@@ -1,6 +1,5 @@
 package com.fabricio.practice.chat_fusion.model;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -22,7 +21,6 @@ public class Chat {
     private String createdById;
     private Set<String> adminIds = new HashSet<>();
     private Set<String> memberIds = new HashSet<>();
-    private List<Message> messages = new ArrayList<>();
 
     // No-args constructor for serialization and deserialization frameworks
     public Chat() {
@@ -39,7 +37,6 @@ public class Chat {
     	this.createdById = createdById;
     	this.adminIds = adminIds;
     	this.memberIds = memberIds;
-    	this.messages = messages;
     }
     
 
@@ -99,14 +96,6 @@ public class Chat {
 
     public void setMemberIds(Set<String> memberIds) {
         this.memberIds = memberIds;
-    }
-
-    public List<Message> getMessages() {
-        return messages;
-    }
-
-    public void setMessages(List<Message> messages) {
-        this.messages = messages;
     }
 
     // To string method
