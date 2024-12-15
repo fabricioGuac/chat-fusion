@@ -5,6 +5,7 @@ import java.util.List;
 import com.fabricio.practice.chat_fusion.exception.ChatException;
 import com.fabricio.practice.chat_fusion.exception.UserException;
 import com.fabricio.practice.chat_fusion.model.Chat;
+import com.fabricio.practice.chat_fusion.model.User;
 import com.fabricio.practice.chat_fusion.request.GroupChatRequest;
 import com.fabricio.practice.chat_fusion.request.UpdateRequest;
 
@@ -12,7 +13,7 @@ import com.fabricio.practice.chat_fusion.request.UpdateRequest;
 public interface ChatService {
 
 	// Creates a one to one chat between two users
-	public Chat createChat(String reqUserId, String userId2) throws UserException;
+	public Chat createChat(User reqUser, String userId2) throws UserException;
 	
 	// Finds a chat based on its ID
 	public Chat findChatById(String chatId) throws ChatException;
@@ -21,7 +22,7 @@ public interface ChatService {
 	public List<Chat> findAllChatsByUserId(String userId);
 	
 	// Creates a group chat with the specified detail 
-	public Chat createGroup(GroupChatRequest req, String reqUserId) throws UserException;
+	public Chat createGroup(GroupChatRequest req, User reqUser) throws UserException;
 	
 	// Adds an user to a group chat
 	public Chat addUserToGroup(String reqUserId, String userId2, String chatId) throws UserException, ChatException;
@@ -30,12 +31,12 @@ public interface ChatService {
 	public Chat makeUserAdmin(String reqUserId, String userId2, String chatId) throws UserException, ChatException;
 	
 	// Updates a group chat details
-	public Chat updateGroup(String reqUserId, String chatId, UpdateRequest req) throws ChatException, UserException;
+	public Chat updateGroup(User reqUser, String chatId, UpdateRequest req) throws ChatException, UserException;
 	
 	// Removes an user from a group chat
-	public Chat removeFromGroup(String reqUserId, String userId2, String chatId) throws ChatException,UserException;
+	public Chat removeFromGroup(User reqUser, String userId2, String chatId) throws ChatException,UserException;
 	
 	// Deletes a chat
-	public void deleteChat(String reqUserId, String chatId) throws ChatException,UserException;
+	public void deleteChat(User reqUser, String chatId) throws ChatException,UserException;
 	
 }

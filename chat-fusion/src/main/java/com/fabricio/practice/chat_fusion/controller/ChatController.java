@@ -48,7 +48,7 @@ public class ChatController {
 		// Retrieves the user's profile based on the JWT token
 		User reqUser = userService.findUserProfile(jwt);
 		// Creates the one to one chat with the provided IDs
-		Chat chat = chatService.createChat(reqUser.getId(), req.getUserId());
+		Chat chat = chatService.createChat(reqUser, req.getUserId());
 		
 		return  new ResponseEntity<Chat>(chat, HttpStatus.OK);
 	}
@@ -59,7 +59,7 @@ public class ChatController {
 		// Retrieves the user's profile based on the JWT token
 		User reqUser = userService.findUserProfile(jwt);
 		// Creates the group chat based on the request data and logged-in user's ID
-		Chat groupChat = chatService.createGroup(groupChatRequest, reqUser.getId());
+		Chat groupChat = chatService.createGroup(groupChatRequest, reqUser);
 		
 		return  new ResponseEntity<Chat>(groupChat, HttpStatus.OK);
 	}
@@ -117,7 +117,7 @@ public class ChatController {
 		User reqUser = userService.findUserProfile(jwt);
 		
 		// Removes an user from an specified chat
-		Chat chat = chatService.removeFromGroup(reqUser.getId(), userId, chatId);
+		Chat chat = chatService.removeFromGroup(reqUser, userId, chatId);
 		
 		return  new ResponseEntity<Chat>(chat, HttpStatus.OK);
 	}
@@ -130,7 +130,7 @@ public class ChatController {
 		User reqUser = userService.findUserProfile(jwt);
 		
 		// Updates the group chat image or name based on the request contents
-		Chat chat = chatService.updateGroup(reqUser.getId(), chatId, req);
+		Chat chat = chatService.updateGroup(reqUser, chatId, req);
 		
 		return  new ResponseEntity<Chat>(chat, HttpStatus.OK);
 	}
@@ -142,7 +142,7 @@ public class ChatController {
 		User reqUser = userService.findUserProfile(jwt);
 		
 		// Deletes the specified chat
-		 chatService.deleteChat(reqUser.getId(), chatId);
+		 chatService.deleteChat(reqUser, chatId);
 		
 		// Creates a response to indicate the chat was deleted successfully
 		 ApiResponse res = new ApiResponse("Chat deleted successfully", true);

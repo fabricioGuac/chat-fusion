@@ -1,6 +1,5 @@
 package com.fabricio.practice.chat_fusion.repository;
 
-import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 import com.fabricio.practice.chat_fusion.exception.ChatException;
 import com.fabricio.practice.chat_fusion.exception.UserException;
 import com.fabricio.practice.chat_fusion.model.Chat;
+import com.fabricio.practice.chat_fusion.model.User;
 import com.fabricio.practice.chat_fusion.repository.ChatRepository;
+import com.fabricio.practice.chat_fusion.repository.MessageRepository;
 import com.fabricio.practice.chat_fusion.request.GroupChatRequest;
 import com.fabricio.practice.chat_fusion.request.UpdateRequest;
 
@@ -20,25 +22,26 @@ public class ChatServiceImplementation implements ChatService {
 	private ChatRepository chatRepository;
 	// User Service for handling user-related operations
 	private UserService userService;
-	// Message Service for handling message-related operations
-	private MessageService messageService;
+	// Message repository to interact with message data in the database
+
+	private MessageRepository messageRepository;
 	
 	// Constructor for dependency injection of ChatRepository and UserService
-	public ChatServiceImplementation(ChatRepository chatRepository, UserService userService, MessageService messageService) { 
+	public ChatServiceImplementation(ChatRepository chatRepository, UserService userService, MessageRepository messageRepository) { 
 		this.chatRepository = chatRepository;
 		this.userService = userService;
-		this.messageService = messageService;
+		this.messageRepository = messageRepository;
 	}
 	
 
 	// Creates a one to one chat between two users
 	@Override
-	public Chat createChat(String reqUserId, String userId2) throws UserException {
+	public Chat createChat(User reqUser, String userId2) throws UserException {
 		
-		userService.findUserById(userId2); // Validation to ensure the second user exists
+		User user2 = userService.findUserById(userId2); // Validation to ensure the second user exists
 		
 		// Checks if a chat between the two users already exists
-		Chat existingChat = chatRepository.findSingleChatByUserIds(reqUserId, userId2);
+		Chat existingChat = chatRepository.findSingleChatByUserIds(reqUser.getId(), userId2);
 		if(existingChat != null ) {
 			// Returns the existing chat if found
 			return existingChat;
@@ -46,9 +49,9 @@ public class ChatServiceImplementation implements ChatService {
 		
 		// Creates a new one to one chat
 		Chat chat = new Chat();
-		chat.setCreatedById(reqUserId);
-		chat.getMemberIds().add(userId2);
-		chat.getMemberIds().add(reqUserId);
+		chat.setCreatedById(reqUser.getId());
+		chat.getMembers().add(user2);
+		chat.getMembers().add(reqUser);
 		chat.setGroup(false);
 		
 		// Saves and returns the new chat
@@ -80,24 +83,23 @@ public class ChatServiceImplementation implements ChatService {
 
 	// Creates a group chat with the specified detail
 	@Override
-	public Chat createGroup(GroupChatRequest req, String reqUserId) throws UserException {
+	public Chat createGroup(GroupChatRequest req, User reqUser) throws UserException {
 		
 		// Initializes a new group chat
 		Chat groupChat = new Chat();
 		groupChat.setGroup(true);
 		groupChat.setChat_image(req.getChat_image());
 		groupChat.setChat_name(req.getChat_name());
-		groupChat.setCreatedById(reqUserId);
-		groupChat.getAdminIds().add(reqUserId);
-		
-		// Validates that all provided user IDs correspond to existing users
-		for (String memberId : req.getUserIds()) {
-			userService.findUserById(memberId);
-        }
+		groupChat.setCreatedById(reqUser.getId());
+		groupChat.getAdminIds().add(reqUser.getId());
 		
 		// Adds the requesting user and other members to the group chat
-		groupChat.getMemberIds().add(reqUserId);
-		groupChat.getMemberIds().addAll(req.getUserIds());
+		groupChat.getMembers().add(reqUser);
+		
+		// Validates that all provided user IDs correspond to existing users and adds them to the group
+		for (String memberId : req.getUserIds()) {
+			groupChat.getMembers().add(userService.findUserById(memberId));
+		 }
 
 		// Saves the new group chat to the database and returns it
 		return chatRepository.save(groupChat);
@@ -108,10 +110,10 @@ public class ChatServiceImplementation implements ChatService {
 	public Chat addUserToGroup(String reqUserId, String userId2, String chatId) throws ChatException, UserException {
 		// Retrieves the chat
 		Chat chat = findChatById(chatId);
-		userService.findUserById(userId2); //Validation to ensure the user exists
+		User user2 = userService.findUserById(userId2); //Validation to ensure the user exists
 
 			if(chat.getAdminIds().contains(reqUserId)) {
-				chat.getMemberIds().add(userId2);
+				chat.getMembers().add(user2);
 				// Saves and return the updated chat
 				return chatRepository.save(chat);
 				}
@@ -147,12 +149,12 @@ public class ChatServiceImplementation implements ChatService {
 	
 	// Updates a group chat details
 	@Override
-	public Chat updateGroup(String reqUserId, String chatId, UpdateRequest req) throws ChatException, UserException {
+	public Chat updateGroup( User reqUser, String chatId, UpdateRequest req) throws ChatException, UserException {
 		// Retrieves the chat
 		Chat chat = findChatById(chatId);
 	        
 	    	// Verifies the requesting user is a member of the chat
-	        if(chat.getMemberIds().contains(reqUserId)) {
+	        if(chat.getMembers().contains(reqUser)) {
 	            
 	            // Updates group name if provided and valid
 	            if (req.getName() != null && !req.getName().isBlank()) {
@@ -182,11 +184,11 @@ public class ChatServiceImplementation implements ChatService {
 
 	// Removes an user from a group chat
 	@Override
-	public Chat removeFromGroup(String reqUserId, String userId2, String chatId) throws ChatException, UserException {
+	public Chat removeFromGroup(User reqUser, String userId2, String chatId) throws ChatException, UserException {
 		// Retrieves the chat
 		Chat chat = findChatById(chatId);
 
-	    userService.findUserById(userId2); // Validation to ensure the user exists
+	    User user2 = userService.findUserById(userId2); // Validation to ensure the user exists
 	    	
 	    	// Ensures the operation is for a group chat
 	        if (!chat.isGroup()) {
@@ -194,23 +196,23 @@ public class ChatServiceImplementation implements ChatService {
 	        }
 
 	        // Verifies the user to be removed is a group member
-	        if (!chat.getMemberIds().contains(userId2)) {
+	        if (!chat.getMembers().contains(user2)) {
 	            throw new ChatException("User is not a member of this group");
 	        }
 
 	        // Allows admins to remove any user
-	        if (chat.getAdminIds().contains(reqUserId)) {
-	        	chat.getMemberIds().remove(userId2);
-	            chat.getAdminIds().remove(userId2);
+	        if (chat.getAdminIds().contains(reqUser.getId())) {
+	        	chat.getMembers().remove(user2);
+	            chat.getAdminIds().remove(user2.getId());
 
 	            // Handles the cases where there are no admins lefs
 	            if (chat.getAdminIds().isEmpty()) {
-	                if (!chat.getMemberIds().isEmpty()) {
-	                    String newAdminId = chat.getMemberIds().iterator().next();
-	                    chat.getAdminIds().add(newAdminId);
+	                if (!chat.getMembers().isEmpty()) {
+	                    User newAdminId = chat.getMembers().iterator().next();
+	                    chat.getAdminIds().add(newAdminId.getId());
 	                } else {
 	                	// Deletes the group if no members remain
-	                    deleteChat(reqUserId, chatId);
+	                    deleteChat(reqUser, chatId);
 	                    return null;
 	                }
 	            }
@@ -219,8 +221,8 @@ public class ChatServiceImplementation implements ChatService {
 	        }
 
 	        // Allow users to remove themselves if they are not admins
-	        if (chat.getMemberIds().contains(reqUserId) && reqUserId.equals(userId2)) {
-	            chat.getMemberIds().remove(userId2);
+	        if (chat.getMembers().contains(reqUser) && reqUser.getId().equals(userId2)) {
+	            chat.getMembers().remove(user2);
 	            return chatRepository.save(chat);
 	        }
 
@@ -233,17 +235,18 @@ public class ChatServiceImplementation implements ChatService {
 
 	// Deletes a chat
 	@Override
-	public void deleteChat(String reqUserId, String chatId) throws ChatException {
+	public void deleteChat(User reqUser, String chatId) throws ChatException {
 		// Retrieves the chat
 		Chat chat = findChatById(chatId);
 
 	        // Handles deletion for the groups
 	        if (chat.isGroup()) {
 	        	// Verifies the requesting user is an admin
-	            if (chat.getAdminIds().contains(reqUserId)) {
+	            if (chat.getAdminIds().contains(reqUser.getId())) {
 	            	
 	            	// Deletes the messages related to the chat
-	                messageService.deleteChatMessages(chatId);
+//	                messageService.deleteChatMessages(chatId);
+	            	messageRepository.deleteByChatId(chatId);
 	            	
 	                // Deletes the chat
 	                chatRepository.deleteById(chatId);
@@ -254,9 +257,10 @@ public class ChatServiceImplementation implements ChatService {
 	        }
 
 	        // Handles deletion for one to one chats chats
-	        if (chat.getMemberIds().contains(reqUserId)) {
+	        if (chat.getMembers().contains(reqUser)) {
 	        	// Deletes the messages related to the chat
-                messageService.deleteChatMessages(chatId);
+//                messageService.deleteChatMessages(chatId);
+	        	messageRepository.deleteByChatId(chatId);
             	
                 // Deletes the chat
                 chatRepository.deleteById(chatId);

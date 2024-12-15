@@ -6,6 +6,7 @@ import java.util.List;
 import com.fabricio.practice.chat_fusion.exception.ChatException;
 import com.fabricio.practice.chat_fusion.exception.MessageException;
 import com.fabricio.practice.chat_fusion.model.Message;
+import com.fabricio.practice.chat_fusion.model.User;
 import com.fabricio.practice.chat_fusion.request.EditMessageRequest;
 import com.fabricio.practice.chat_fusion.request.SendMessageRequest;
 
@@ -16,7 +17,7 @@ public interface MessageService {
 	public Message sendMessage(SendMessageRequest req, String reqUserId) throws  ChatException, MessageException;
 	
 	// Retrieves messages from a specified chat with pagination 
-	public List<Message> getChatMessages(String chatId, String reqUserId, int limit, int skip) throws ChatException;
+	public List<Message> getChatMessages(String chatId, User reqUser, int limit, int skip) throws ChatException;
 	
 	// Finds a messaged by its unique ID
 	public Message findMessageById(String messageId) throws MessageException; 
@@ -27,7 +28,5 @@ public interface MessageService {
 	// Deletes a message by its unique ID
 	public void deleteMessage(String messageId , String reqUserId) throws MessageException;
 	
-	// Deletes all messages from a chat
-	public void deleteChatMessages(String chatId);
 	
 }

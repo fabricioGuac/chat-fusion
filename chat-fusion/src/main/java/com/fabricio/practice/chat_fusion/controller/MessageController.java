@@ -64,7 +64,7 @@ public class MessageController {
 	    User reqUser = userService.findUserProfile(jwt);
 
 	    // Retrieves paginated messages for the specified chat
-	    List<Message> mssgs = messageService.getChatMessages(chatId, reqUser.getId(), 100, skip);
+	    List<Message> mssgs = messageService.getChatMessages(chatId, reqUser, 100, skip);
 
 	    // Returns the paginated list of messages with an HTTP OK status
 	    return new ResponseEntity<>(mssgs, HttpStatus.OK);

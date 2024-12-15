@@ -14,6 +14,7 @@ import com.fabricio.practice.chat_fusion.exception.ChatException;
 import com.fabricio.practice.chat_fusion.exception.MessageException;
 import com.fabricio.practice.chat_fusion.model.Chat;
 import com.fabricio.practice.chat_fusion.model.Message;
+import com.fabricio.practice.chat_fusion.model.User;
 import com.fabricio.practice.chat_fusion.repository.MessageRepository;
 import com.fabricio.practice.chat_fusion.request.EditMessageRequest;
 import com.fabricio.practice.chat_fusion.request.SendMessageRequest;
@@ -21,6 +22,7 @@ import com.fabricio.practice.chat_fusion.request.SendMessageRequest;
 // Implementation of the MessageService interface
 @Service
 public class MessageServiceImplementation implements MessageService {
+
 
 	// Chat Service for handling user-related operations
 	public ChatService chatService;
@@ -58,12 +60,12 @@ public class MessageServiceImplementation implements MessageService {
 
 	// Retrieves messages from a specified chat with pagination
 	@Override
-	public List<Message> getChatMessages(String chatId, String reqUserId,int limit, int skip) throws ChatException{
+	public List<Message> getChatMessages(String chatId, User reqUser,int limit, int skip) throws ChatException{
 		// Queries the chat in the database
 	    Chat chat = chatService.findChatById(chatId);
 	    
 	    // Checks if the requesting user is a member of the chat
-	    if (!chat.getMemberIds().contains(reqUserId)) {
+	    if (!chat.getMembers().contains(reqUser)) {
 	        throw new ChatException("You are not a member of this chat and cannot view its messages.");
 	    }
 	    
@@ -126,12 +128,5 @@ public class MessageServiceImplementation implements MessageService {
 		 	// Throws an exception if the user is not the author of the message
 		 	throw new MessageException("Cannot delete messages from another user");
 		}
-	
-	// Deletes all messages associated with a specific chat
-	@Override
-	public void deleteChatMessages(String chatId) {
-		// Deletes all messages from the chat using it's ID
-		messageRepository.deleteByChatId(chatId);
-	}
 
 }
