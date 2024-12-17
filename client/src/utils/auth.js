@@ -36,7 +36,7 @@ class AuthService {
         // save user token to localStorage
         localStorage.setItem('id_token', idToken);
         // this will reload the page and send the user to the dashboard page
-        window.location.assign('/dashboard');
+        window.location.assign('/');
     }
 
     // Function to log an user out
