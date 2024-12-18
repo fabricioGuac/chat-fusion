@@ -1,9 +1,148 @@
 
-export default function SideBar() {
+import { useState, useEffect } from "react";
+import auth from "../utils/auth";
+
+export default function SideBar({ onSelectView }) {
+    // State  variables to handle the data and it's loading state
+    const [currentUser, setCurrentUser] = useState(null);
+    const [chats, setChats] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+
+
+    // UseEffect to fetch user profile and chats on component mount
+    useEffect(() => {
+        // Asynchronous function to fetch sidebar data
+        const fetchSidebarData = async () => {
+            try {
+                // Retrieves the JWT token 
+                const token = auth.getToken();
+
+                // Sets up headers with the token
+                const headers = {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                };
+
+                // Awaits the resolution of both API calls simultaneously using Promise.all
+                const [userResponse, chatsResponse] = await Promise.all([
+                    fetch("/api/users/profile", { headers }),
+                    fetch("/api/chats/user", { headers }),
+                ]);
+
+                // Checks if the responses are okay
+                if (!userResponse.ok || !chatsResponse.ok) {
+                    throw new Error("Failed to fetch data");
+                }
+
+
+                // Parses the JSON responses
+                const userData = await userResponse.json();
+                const chatsData = await chatsResponse.json();
+
+                // Updates the state variables with the fetched data 
+                setCurrentUser(userData);
+                setChats(chatsData);
+
+
+            } catch (error) {
+                console.log(error.message);
+                console.log("Error fetching data" + error);
+            } finally {
+                // Sets the loading to false
+                setLoading(false);
+            }
+        }
+
+        // Calls the fetch function
+        fetchSidebarData();
+    }, []);
+
+    if (loading) {
+        return <div className="w-64 bg-gray-100 text-center h-screen p-4">Loading...</div>;
+    }
 
     return (
-        <>
-            <h1>SideBar</h1>
-        </>
-    )
+        <div className="w-64 bg-gray-100 h-screen flex flex-col">
+            {/* Header Section */}
+            <div
+                className="p-4 flex items-center gap-4 cursor-pointer hover:bg-gray-200"
+                onClick={() =>
+                    onSelectView({ type: "edit-details", data: { type: "user", id: currentUser.id } })
+                }
+            >
+                <img
+                    src={currentUser.pfp || "/logo192.png"}
+                    alt="profile picture"
+                    className="w-12 h-12 rounded-full object-cover"
+                />
+                <h2 className="font-bold">{currentUser.username}</h2>
+            </div>
+
+            {/* Search Bar */}
+            <div className="p-4">
+                <button
+                    onClick={() => onSelectView({ type: "search-users" })}
+                    className="flex items-center justify-center bg-gray-200 p-2 rounded w-full hover:bg-gray-300"
+                >
+                    <span role="img" aria-label="search" className="text-lg">
+                        🔍
+                    </span>{" "}
+                    Search for users
+                </button>
+            </div>
+
+            {/* Create Group Button */}
+            <div className="p-4">
+                <button
+                    className="bg-blue-500 text-white py-2 px-4 rounded shadow-lg hover:bg-blue-600 w-full"
+                    onClick={() => onSelectView({ type: "group-create" })}
+                >
+                    Create Group
+                </button>
+            </div>
+
+            {/* Chat List Section */}
+            <div className="flex-1 overflow-y-auto p-4">
+                <h2 className="text-xl font-bold mb-4">Chats</h2>
+                {chats.length === 0 ? (
+                    <div className="text-gray-500 text-center">
+                        Search for an user to start a conversation!
+                    </div>
+                ) : (
+                    <ul>
+                        {chats.map((chat) => (
+                            <li
+                                key={chat.id}
+                                className="p-2 flex items-center gap-4 hover:bg-gray-200 cursor-pointer"
+                                onClick={() => onSelectView({ type: "chat", data: chat.id })}
+                            >
+                                <img
+                                    src={
+                                        chat.isGroup
+                                            ? chat.pfp || "/logo192.png"
+                                            : chat.members[0].id === currentUser.id
+                                                ? chat.members[1].pfp || "/logo192.png"
+                                                : chat.members[0].pfp || "/logo192.png"
+                                    }
+                                    alt="chat image"
+                                    className="w-10 h-10 rounded-full object-cover"
+                                />
+                                <span>
+                                    {chat.isGroup
+                                        ? chat.chat_name
+                                        : chat.members[0].id === currentUser.id
+                                            ? chat.members[1].username
+                                            : chat.members[0].username}
+                                </span>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
+        </div>
+    );
+
+
+
 }
