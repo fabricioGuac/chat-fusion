@@ -1,9 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import auth from "../utils/auth";
 
 export default function Signup() {
+
+
+    
+    const navigate = useNavigate();
+
+    // Redirects the user to the dashboard if logged in
+    useEffect(() => {
+        if (auth.loggedIn()) {
+            navigate('/');
+        }
+    }, []);
+
     // State variables
     const [form, setForm] = useState({ username: "", email: "", password: "" });
     const [errorMessage, setErrorMessage] = useState("");

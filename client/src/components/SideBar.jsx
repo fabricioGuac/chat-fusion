@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import auth from "../utils/auth";
+import { get } from "../utils/api";
 
 export default function SideBar({ onSelectView }) {
     // State  variables to handle the data and it's loading state
@@ -15,35 +15,15 @@ export default function SideBar({ onSelectView }) {
         // Asynchronous function to fetch sidebar data
         const fetchSidebarData = async () => {
             try {
-                // Retrieves the JWT token 
-                const token = auth.getToken();
-
-                // Sets up headers with the token
-                const headers = {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                };
-
                 // Awaits the resolution of both API calls simultaneously using Promise.all
-                const [userResponse, chatsResponse] = await Promise.all([
-                    fetch("/api/users/profile", { headers }),
-                    fetch("/api/chats/user", { headers }),
+                const [userData, chatsData] = await Promise.all([
+                    get("/api/users/profile"),
+                    get("/api/chats/user"),
                 ]);
-
-                // Checks if the responses are okay
-                if (!userResponse.ok || !chatsResponse.ok) {
-                    throw new Error("Failed to fetch data");
-                }
-
-
-                // Parses the JSON responses
-                const userData = await userResponse.json();
-                const chatsData = await chatsResponse.json();
 
                 // Updates the state variables with the fetched data 
                 setCurrentUser(userData);
                 setChats(chatsData);
-
 
             } catch (error) {
                 console.log(error.message);
@@ -63,12 +43,12 @@ export default function SideBar({ onSelectView }) {
     }
 
     return (
-        <div className="w-64 bg-gray-100 h-screen flex flex-col">
+        <aside className="w-64 bg-gray-100 h-screen flex flex-col">
             {/* Header Section */}
             <div
                 className="p-4 flex items-center gap-4 cursor-pointer hover:bg-gray-200"
                 onClick={() =>
-                    onSelectView({ type: "edit-details", data: { type: "user", id: currentUser.id } })
+                    onSelectView({ type: "update-details", data: { type: "user", id: currentUser.id } })
                 }
             >
                 <img
@@ -82,12 +62,12 @@ export default function SideBar({ onSelectView }) {
             {/* Search Bar */}
             <div className="p-4">
                 <button
-                    onClick={() => onSelectView({ type: "search-users" })}
+                    onClick={() => onSelectView({ type: "single-create" })}
                     className="flex items-center justify-center bg-gray-200 p-2 rounded w-full hover:bg-gray-300"
                 >
                     <span role="img" aria-label="search" className="text-lg">
                         🔍
-                    </span>{" "}
+                    </span>
                     Search for users
                 </button>
             </div>
@@ -140,7 +120,7 @@ export default function SideBar({ onSelectView }) {
                     </ul>
                 )}
             </div>
-        </div>
+        </aside>
     );
 
 
