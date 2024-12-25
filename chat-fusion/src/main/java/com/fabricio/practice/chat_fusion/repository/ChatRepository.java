@@ -14,7 +14,7 @@ import com.fabricio.practice.chat_fusion.model.Chat;
 @Repository
 public interface ChatRepository extends MongoRepository<Chat, String>{
 	// Custom query method to find all chats where the user is a member
-	@Query("{ 'memberIds': ?0 }")
+	@Query("{ 'members': ?0 }")
 	public List<Chat> findChatByUserId(String userId);
 
 	

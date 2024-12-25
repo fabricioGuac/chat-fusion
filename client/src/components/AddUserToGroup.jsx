@@ -1,17 +1,36 @@
 import { put } from "../utils/api";
 import SearchUser from "./SearchUser";
 
-export default function AddUserToGroup({  chatId ,setSelectedView }) {
+export default function AddUserToGroup({ chatId, closeModal }) {
+    // Handles adding a seleted user to the group
     const handleAddUser = async (user) => {
         try {
-            // Makes the Api call to update the chat users
-            const Updatedchat = await put(`/api/${chatId}/add/${user.id}`);
-            // Sets the view to the chat with the latest data
-            setSelectedView({type:"chat", data:Updatedchat});
+            // Makes the API call to add the selected user to the group
+            await put(`/api/${chatId}/add/${user.id}`);
+            // Closes the modal on success
+            closeModal();
+            // TODO: handle the notification with WebSocket
         } catch (error) {
             console.log("Error adding user to group", error);
         }
     };
 
-    return <SearchUser onSelectUser={handleAddUser} searchPlaceHolder="Select you new user"/>
+    return (
+        <div>
+            {/* SearchUser component allows searching and selecting a user */}
+            <SearchUser 
+                onSelectUser={handleAddUser} 
+                searchPlaceHolder="Select your new user"
+            />
+            {/* Button to close the modal */}
+            <div className="mt-4 flex justify-end">
+                <button 
+                    onClick={closeModal} 
+                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                >
+                    Cancel
+                </button>
+            </div>
+        </div>
+    );
 }

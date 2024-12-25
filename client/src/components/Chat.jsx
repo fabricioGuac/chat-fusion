@@ -1,15 +1,19 @@
+import ChatHeader from "./ChatHeader";
+import ChatBody from "./ChatBody";
+import ChatInput from "./ChatInput";
 
-
-
-export default function Chat({chat}){
-
-    console.log(chat);
-
+// Chat component combining the header, body and input sections
+export default function Chat({ chat, currentUser }) {
     return (
-        <>
-        <h1>Chat with the id: {chat.id}</h1>
-        <h1>Chat between: {chat.members[0].username}</h1>
-        <h1> {chat.isGroup ? "is group": "is private"}</h1>
-        </>
+        <div className="flex flex-col h-full">
+            {/* Chat header with chat details and user data */}
+            <ChatHeader chat={chat} currentUser={currentUser} />
+            <div className="flex-1 overflow-y-auto">
+                {/* Chat boy where the messages are displayed */}
+                <ChatBody chat={chat} currentUser={currentUser} />
+            </div>
+            {/* Input field for sending new messages */}
+            <ChatInput chatId={chat.id} />
+        </div>
     );
 }

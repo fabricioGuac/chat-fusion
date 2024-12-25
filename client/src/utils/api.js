@@ -4,12 +4,19 @@ import auth from "./auth";
 const fetchApi = async (url, options = {}) => {
     // Retrieves the JWT token from the auth service
     const token = auth.getToken();
-    // Defines the default headers including the Authorization header with the token
+    
+    // Check if the body is an instance of FormData, which requires multipart/form-data
     const headers = {
-        Authorization: `Bearer ${token}`, // Adds the Bearer token for authorization
-        "Content-Type": "application/json", // Ensures JSON format for request payload
+        Authorization: `Bearer ${token}`,
         ...options.headers, // Merges any additional headers provided in the options
     };
+
+    // If body is FormData, we don't set Content-Type (it will be auto-set)
+    if (options.body instanceof FormData) {
+        delete headers['Content-Type']; // FormData will set the correct Content-Type automatically
+    } else {
+        headers["Content-Type"] = "application/json"; // For other cases, use JSON
+    }
 
     // Makes the API call with the provided URL and options
     const response = await fetch(url, { ...options, headers });

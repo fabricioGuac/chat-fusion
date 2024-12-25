@@ -4,7 +4,6 @@ import auth from "../utils/auth";
 import SideBar from "../components/SideBar";
 import UpdateDetails from "../components/UpdateDetails";
 import Chat from "../components/Chat";
-import SearchUser from "../components/SearchUser";
 import CreateGroup from "../components/CreateGroup";
 import CreateSingleChat from "../components/CreateSingleChat";
 
@@ -25,7 +24,7 @@ export default function Dashboard() {
     const renderContent = () => {
         switch (selectedView.type) {
             case "chat":
-                return <Chat chat={selectedView.data} /> ;
+                return <Chat chat={selectedView.data.chat} currentUser={selectedView.data.currentUser} setSelectedView={setSelectedView} /> ;
             case "single-create":
                 return <CreateSingleChat setSelectedView={setSelectedView} /> ;
             case "group-create":
@@ -33,6 +32,7 @@ export default function Dashboard() {
             case "update-details":
                 return <UpdateDetails data={selectedView.data} />;
             default:
+                // Default message when no view is seleted
                 return <h2 className="flex justify-center items-center h-screen text-5xl">Select a chat or create a group!</h2>;
         }
     };
@@ -40,7 +40,9 @@ export default function Dashboard() {
 
     return (
         <div className="flex h-screen">
+            {/* Side bar to control the rendered view */}
             <SideBar onSelectView={setSelectedView} />
+            {/* Dynamically rendered main content */}
             <main className="flex-1 overflow-y-auto bg-white">
                 {renderContent()}
             </main>

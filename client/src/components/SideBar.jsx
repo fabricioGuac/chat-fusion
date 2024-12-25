@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { get } from "../utils/api";
 
@@ -48,7 +47,7 @@ export default function SideBar({ onSelectView }) {
             <div
                 className="p-4 flex items-center gap-4 cursor-pointer hover:bg-gray-200"
                 onClick={() =>
-                    onSelectView({ type: "update-details", data: { type: "user", id: currentUser.id } })
+                    onSelectView({ type: "update-details", data: { type: "user", details: currentUser } })
                 }
             >
                 <img
@@ -59,7 +58,7 @@ export default function SideBar({ onSelectView }) {
                 <h2 className="font-bold">{currentUser.username}</h2>
             </div>
 
-            {/* Search Bar */}
+
             <div className="p-4">
                 <button
                     onClick={() => onSelectView({ type: "single-create" })}
@@ -91,38 +90,47 @@ export default function SideBar({ onSelectView }) {
                     </div>
                 ) : (
                     <ul>
-                        {chats.map((chat) => (
+                    {chats.map((chat) => {
+                        // Determines if this is a self-chat
+                        const isSelfChat = !chat.group && chat.members.length === 1;
+                
+                        // Determines the image source
+                        const imageSrc = isSelfChat
+                            ? currentUser.pfp || "/logo192.png"
+                            : chat.group
+                            ? chat.pfp || "/logo192.png"
+                            : chat.members[0].id === currentUser.id
+                            ? chat.members[1].pfp || "/logo192.png"
+                            : chat.members[0].pfp || "/logo192.png";
+                
+                        // Determines the name to display
+                        const displayName = isSelfChat
+                            ? "You"
+                            : chat.group
+                            ? chat.chat_name
+                            : chat.members[0].id === currentUser.id
+                            ? chat.members[1].username
+                            : chat.members[0].username;
+                
+                        return (
                             <li
                                 key={chat.id}
                                 className="p-2 flex items-center gap-4 hover:bg-gray-200 cursor-pointer"
-                                onClick={() => onSelectView({ type: "chat", data: chat.id })}
+                                onClick={() => onSelectView({ type: "chat", data: {chat, currentUser} })}
                             >
                                 <img
-                                    src={
-                                        chat.isGroup
-                                            ? chat.pfp || "/logo192.png"
-                                            : chat.members[0].id === currentUser.id
-                                                ? chat.members[1].pfp || "/logo192.png"
-                                                : chat.members[0].pfp || "/logo192.png"
-                                    }
+                                    src={imageSrc}
                                     alt="chat image"
                                     className="w-10 h-10 rounded-full object-cover"
                                 />
-                                <span>
-                                    {chat.isGroup
-                                        ? chat.chat_name
-                                        : chat.members[0].id === currentUser.id
-                                            ? chat.members[1].username
-                                            : chat.members[0].username}
-                                </span>
+                                <span>{displayName}</span>
                             </li>
-                        ))}
-                    </ul>
+                        );
+                    })}
+                </ul>
+                
                 )}
             </div>
         </aside>
     );
-
-
-
 }

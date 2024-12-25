@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { post } from "../utils/api";
 import SearchUser from "./SearchUser";
@@ -27,11 +26,17 @@ export default function CreateGroup({ setSelectedView }) {
 
         try {
             const memberIds = members.map((m) => m.id);
-            const response = await post("/api/chats/group", {
-                userIds: memberIds,
-                chat_name: groupName,
-                chat_image: groupImage,
-            });
+
+            // Prepare FormData object to send multipart form data
+            const formData = new FormData();
+            formData.append("userIds", JSON.stringify(memberIds)); // Add member IDs
+            formData.append("chat_name", groupName); // Add group name
+            if (groupImage) {
+                formData.append("chat_image", groupImage); // Add the image file if it exists
+            }
+
+            // Send the FormData with the POST request
+            const response = await post("/api/chats/group", formData);
 
             // Set the view to the newly created group chat passing the chat data
             setSelectedView({ type: "chat", data: response });
@@ -66,7 +71,6 @@ export default function CreateGroup({ setSelectedView }) {
                 </div>
             )}
 
-            {/* Group Creation Form */}
             <form onSubmit={handleCreateGroup} className="mt-4">
                 <input
                     type="text"
