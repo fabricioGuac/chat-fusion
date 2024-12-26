@@ -2,13 +2,15 @@ package com.fabricio.practice.chat_fusion.request;
 
 import java.util.List;
 
+import org.springframework.web.multipart.MultipartFile;
+
 //DTO (Data Transfer Object) for group chat request data
 public class GroupChatRequest {
 	
 	// List of member's IDs
 	private List<String> userIds;
 	private String chat_name;
-	private String chat_image;
+	private MultipartFile chat_image;
 	
 	// Default no-arguments constructor
 	public GroupChatRequest() {
@@ -16,7 +18,7 @@ public class GroupChatRequest {
 	}
 	
 	// Constructor to create a GroupChatRequest with the specified fields
-	public GroupChatRequest(List<String> userIds, String chat_name, String chat_image) {
+	public GroupChatRequest(List<String> userIds, String chat_name, MultipartFile chat_image) {
 		super();
 		this.userIds = userIds;
 		this.chat_name = chat_name;
@@ -37,10 +39,10 @@ public class GroupChatRequest {
 	public void setChat_name(String chat_name) {
 		this.chat_name = chat_name;
 	}
-	public String getChat_image() {
+	public MultipartFile getChat_image() {
 		return chat_image;
 	}
-	public void setChat_image(String chat_image) {
+	public void setChat_image(MultipartFile chat_image) {
 		this.chat_image = chat_image;
 	}
 	

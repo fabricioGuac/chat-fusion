@@ -5,6 +5,7 @@ import java.util.Objects;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 //Marks this class as a MongoDB document corresponding to the "messages" collection
@@ -14,12 +15,15 @@ public class Message {
     // Specifies the unique identifier for this document in the collection
     @Id
     private String id;
+    private String type;
     private String content;
     // Indexes the time stamp to improve query performance
     @Indexed
     private LocalDateTime timestamp;
 
-    private String userId;
+    // Use @DBRef to reference User entities for user
+    @DBRef
+    private User user;
     private String chatId; 
 
     // No-args constructor for serialization and deserialization frameworks
@@ -27,16 +31,17 @@ public class Message {
     }
 
     // Full-args constructor for initializing all fields of the Message object
-    public Message(String id, String content, LocalDateTime timestamp, String userId, String chatId) {
-        super();
-        this.id = id;
-        this.content = content;
-        this.timestamp = timestamp;
-        this.userId = userId;
-        this.chatId = chatId;
-    }
+    public Message(String id, String type, String content, LocalDateTime timestamp, User user, String chatId) {
+		super();
+		this.id = id;
+		this.type = type;
+		this.content = content;
+		this.timestamp = timestamp;
+		this.user = user;
+		this.chatId = chatId;
+	}
 
-    // Getters and Setters
+	// Getters and Setters
     public String getId() {
         return id;
     }
@@ -61,12 +66,12 @@ public class Message {
         this.timestamp = timestamp;
     }
 
-    public String getUserId() {
-        return userId;
+    public User getUser() {
+        return user;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public String getChatId() {
@@ -76,31 +81,40 @@ public class Message {
     public void setChatId(String chatId) {
         this.chatId = chatId;
     }
+    
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
 
     // To string method
-    @Override
-    public String toString() {
-        return "Message [id=" + id + ", content=" + content + ", timestamp=" + timestamp + ", userId=" + userId + ", chatId=" + chatId + "]";
-    }
+	@Override
+	public String toString() {
+		return "Message [id=" + id + ", type=" + type + ", content=" + content + ", timestamp=" + timestamp
+				+ ", user=" + user + ", chatId=" + chatId + "]";
+	}
 
-    // Hash code method
-    @Override
-    public int hashCode() {
-        return Objects.hash(content, id, timestamp, userId, chatId);
-    }
+	// Hash code method
+	@Override
+	public int hashCode() {
+		return Objects.hash(chatId, content, id, timestamp, type, user);
+	}
 
-    // Equals method
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        Message other = (Message) obj;
-        return Objects.equals(content, other.content) && Objects.equals(id, other.id)
-                && Objects.equals(timestamp, other.timestamp) && Objects.equals(userId, other.userId)
-                && Objects.equals(chatId, other.chatId);
-    }
+	// Equals method
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Message other = (Message) obj;
+		return Objects.equals(chatId, other.chatId) && Objects.equals(content, other.content)
+				&& Objects.equals(id, other.id) && Objects.equals(timestamp, other.timestamp)
+				&& Objects.equals(type, other.type) && Objects.equals(user, other.user);
+	}
 }

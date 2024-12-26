@@ -3,13 +3,13 @@ import { del, put } from "../utils/api";
 
 export default function Message({ message, currentUser }) {
     // Deconstructs the message
-    const { id, content, author, timestamp, type } = message;
+    const { id, content, user, timestamp, type } = message;
     // State variables to handle editing state, the edit content and error messages
     const [isEditing, setIsEditing] = useState(false);
     const [editContent, setEditcontent] = useState(content);
     const [errorMessage, setErrorMessage] = useState("");
     // Flag to indicate if the user is the author of the message
-    const isCurrentUser = author.id === currentUser.id;
+    const isCurrentUser = user.id === currentUser.id;
 
 
     // Handles editing the message
@@ -44,7 +44,7 @@ export default function Message({ message, currentUser }) {
             <div className={`max-w-xs p-3 rounded-lg ${isCurrentUser ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-800"}`}>
 
                 {/* Dispplays theauthor username */}
-                <h5 className="text-xs mb-1">{author.username}</h5>
+                <h5 className="text-xs mb-1">{user.username}</h5>
 
                 {/* Shows edit input or message content */}
                 {isEditing ? (

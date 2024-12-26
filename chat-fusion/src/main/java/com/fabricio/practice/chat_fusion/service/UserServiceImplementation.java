@@ -1,5 +1,6 @@
 package com.fabricio.practice.chat_fusion.service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,6 +13,10 @@ import com.fabricio.practice.chat_fusion.model.User;
 import com.fabricio.practice.chat_fusion.repository.UserRepository;
 import com.fabricio.practice.chat_fusion.request.UpdateRequest;
 
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+
 // Implementation of the UserService interface
 @Service
 public class UserServiceImplementation implements UserService {
@@ -20,11 +25,14 @@ public class UserServiceImplementation implements UserService {
 	private UserRepository userRepository;
 	// Dependency for JWT operations
 	private JwtProvider jwtProvider;
+	// AWS Service to interact with the S3 bucket
+	private AwsService awsS3Client;
 	
-	// Constructor for dependency injection of UserRepository and JwtProvider
-	public UserServiceImplementation (UserRepository userRepository, JwtProvider jwtProvider) {
+	// Constructor for dependency injection of UserRepository, JwtProvider and AwsServide
+	public UserServiceImplementation (UserRepository userRepository, JwtProvider jwtProvider, AwsService awsS3Client) {
 		this.userRepository = userRepository;
 		this.jwtProvider = jwtProvider;
+		this.awsS3Client = awsS3Client;
 	}
 
 	// Retrieves the profile of an user based on the provided JWT
@@ -75,7 +83,7 @@ public class UserServiceImplementation implements UserService {
 
 	// Updates an user information based on the provided ID and update request
 	@Override
-	public User updateUser(String id, UpdateRequest req) throws UserException {
+	public User updateUser(String id, UpdateRequest req) throws UserException, S3Exception, AwsServiceException, SdkClientException, IOException {
 	    // Finds the user to update
 	    User user = findUserById(id);
 
@@ -89,8 +97,13 @@ public class UserServiceImplementation implements UserService {
 	    }
 
 	    // Update the profile picture if provided
-	    if (req.getPfp() != null && !req.getPfp().isBlank()) {
-	        user.setPfp(req.getPfp());
+	    if (req.getPfp() != null) {
+	    	String awsUrl = awsS3Client.uploadFile(id+"/pfp", req.getPfp().getInputStream(), req.getPfp().getContentType());
+	        
+	    	if(user.getPfp() == null || user.getPfp().isBlank()) {
+	    		
+	    		user.setPfp(awsUrl);
+	    	}
 	    }
 
 	    // Save the updated user to the database

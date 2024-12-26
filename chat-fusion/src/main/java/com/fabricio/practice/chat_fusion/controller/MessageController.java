@@ -1,5 +1,6 @@
 package com.fabricio.practice.chat_fusion.controller;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -26,6 +27,10 @@ import com.fabricio.practice.chat_fusion.response.ApiResponse;
 import com.fabricio.practice.chat_fusion.service.MessageService;
 import com.fabricio.practice.chat_fusion.service.UserService;
 
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+
 @RestController
 @RequestMapping("/api/messages")
 public class MessageController {
@@ -43,11 +48,11 @@ public class MessageController {
 	
 	// Route to create a new message
 	@PostMapping("/send")
-	public ResponseEntity<Message> sendMessageHandler(@RequestBody SendMessageRequest req, @RequestHeader("Authorization") String jwt) throws  ChatException, MessageException, UserException {
+	public ResponseEntity<Message> sendMessageHandler(@RequestBody SendMessageRequest req, @RequestHeader("Authorization") String jwt) throws  ChatException, MessageException, UserException, S3Exception, AwsServiceException, SdkClientException, IOException {
 		// Retrieves the user's profile based on the JWT token
 		User reqUser = userService.findUserProfile(jwt);
 		// Creates the message
-		Message mssg = messageService.sendMessage(req, reqUser.getId());
+		Message mssg = messageService.sendMessage(req, reqUser);
 		
 		return new ResponseEntity<Message>(mssg, HttpStatus.OK);
 	}
@@ -84,7 +89,7 @@ public class MessageController {
 	
 	// Route to delete a message
 	@DeleteMapping("/delete/{messageId}")
-	public ResponseEntity <ApiResponse> deleteMessageHandler(@PathVariable String messageId, @RequestHeader("Authorization") String jwt) throws  MessageException, UserException {
+	public ResponseEntity <ApiResponse> deleteMessageHandler(@PathVariable String messageId, @RequestHeader("Authorization") String jwt) throws  MessageException, UserException, ChatException {
 		// Retrieves the user's profile based on the JWT token
 		User reqUser = userService.findUserProfile(jwt);
 		// Calls the service to delete the message if the user is authorized

@@ -1,7 +1,9 @@
 package com.fabricio.practice.chat_fusion.service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
@@ -14,6 +16,10 @@ import com.fabricio.practice.chat_fusion.repository.MessageRepository;
 import com.fabricio.practice.chat_fusion.request.GroupChatRequest;
 import com.fabricio.practice.chat_fusion.request.UpdateRequest;
 
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+
 //Implementation of the ChatService interface
 @Service
 public class ChatServiceImplementation implements ChatService {
@@ -23,14 +29,16 @@ public class ChatServiceImplementation implements ChatService {
 	// User Service for handling user-related operations
 	private UserService userService;
 	// Message repository to interact with message data in the database
-
 	private MessageRepository messageRepository;
+	// AWS Service to interact with the S3 bucket
+	private AwsService awsS3Client;
 	
-	// Constructor for dependency injection of ChatRepository and UserService
-	public ChatServiceImplementation(ChatRepository chatRepository, UserService userService, MessageRepository messageRepository) { 
+	// Constructor for dependency injection of the necessary dependencies
+	public ChatServiceImplementation(ChatRepository chatRepository, UserService userService, MessageRepository messageRepository, AwsService awsS3Client) { 
 		this.chatRepository = chatRepository;
 		this.userService = userService;
 		this.messageRepository = messageRepository;
+		this.awsS3Client = awsS3Client;
 	}
 	
 
@@ -83,12 +91,25 @@ public class ChatServiceImplementation implements ChatService {
 
 	// Creates a group chat with the specified detail
 	@Override
-	public Chat createGroup(GroupChatRequest req, User reqUser) throws UserException {
+	public Chat createGroup(GroupChatRequest req, User reqUser) throws UserException, S3Exception, AwsServiceException, SdkClientException, IOException {
 		
 		// Initializes a new group chat
 		Chat groupChat = new Chat();
 		groupChat.setGroup(true);
-		groupChat.setChat_image(req.getChat_image());
+		
+		// Generates a unique ID for the group chat
+	    String groupId = UUID.randomUUID().toString();
+	    groupChat.setId(groupId);
+		
+		// Verifies if the request includes an image
+		if(req.getChat_image() != null) {
+			// Uploads the image to AWS S3 using the chat id and "pfp" as a prefix
+			String awsUrl = awsS3Client.uploadFile(groupChat.getId()+"/pfp", req.getChat_image().getInputStream(), req.getChat_image().getContentType());
+			// Sets the URL to the file as the chat image
+			groupChat.setChat_image(awsUrl);
+		}
+		
+		// Proceeds with chat initialization
 		groupChat.setChat_name(req.getChat_name());
 		groupChat.setCreatedById(reqUser.getId());
 		groupChat.getAdminIds().add(reqUser.getId());
@@ -149,7 +170,7 @@ public class ChatServiceImplementation implements ChatService {
 	
 	// Updates a group chat details
 	@Override
-	public Chat updateGroup( User reqUser, String chatId, UpdateRequest req) throws ChatException, UserException {
+	public Chat updateGroup( User reqUser, String chatId, UpdateRequest req) throws ChatException, UserException, S3Exception, AwsServiceException, SdkClientException, IOException {
 		// Retrieves the chat
 		Chat chat = findChatById(chatId);
 	        
@@ -168,8 +189,14 @@ public class ChatServiceImplementation implements ChatService {
 	            }
 
 	            // Updates group image if provided
-	            if (req.getPfp() != null && !req.getPfp().isBlank()) {
-	                chat.setChat_image(req.getPfp());
+	            if (req.getPfp() != null) {
+	            	// Overwrites the previous chat image in the AWS S3 bucket
+	            	String awsUrl = awsS3Client.uploadFile(chatId+"/pfp", req.getPfp().getInputStream(), req.getPfp().getContentType());
+	            	
+	            	// If there was no previous image it sets the new image URL
+	            	if(chat.getChat_image() == null) {
+	            		chat.setChat_image(awsUrl);
+	            	}
 	            }
 
 	            // Saves and return the updated chat
@@ -245,8 +272,10 @@ public class ChatServiceImplementation implements ChatService {
 	            if (chat.getAdminIds().contains(reqUser.getId())) {
 	            	
 	            	// Deletes the messages related to the chat
-//	                messageService.deleteChatMessages(chatId);
 	            	messageRepository.deleteByChatId(chatId);
+	            	
+	            	// Deletes all files in the chat from the AWS S3 bucket
+		        	awsS3Client.deleteAllChatFiles(chatId);
 	            	
 	                // Deletes the chat
 	                chatRepository.deleteById(chatId);
@@ -259,8 +288,10 @@ public class ChatServiceImplementation implements ChatService {
 	        // Handles deletion for one to one chats chats
 	        if (chat.getMembers().contains(reqUser)) {
 	        	// Deletes the messages related to the chat
-//                messageService.deleteChatMessages(chatId);
 	        	messageRepository.deleteByChatId(chatId);
+	        	
+	        	// Deletes all files in the chat from the AWS S3 bucket
+	        	awsS3Client.deleteAllChatFiles(chatId);
             	
                 // Deletes the chat
                 chatRepository.deleteById(chatId);

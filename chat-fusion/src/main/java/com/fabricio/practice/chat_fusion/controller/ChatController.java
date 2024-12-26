@@ -1,5 +1,6 @@
 package com.fabricio.practice.chat_fusion.controller;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,10 @@ import com.fabricio.practice.chat_fusion.request.UpdateRequest;
 import com.fabricio.practice.chat_fusion.response.ApiResponse;
 import com.fabricio.practice.chat_fusion.service.ChatService;
 import com.fabricio.practice.chat_fusion.service.UserService;
+
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 //Controller responsible for chat-related API endpoints
 @RestController
@@ -55,7 +60,7 @@ public class ChatController {
 	
 	// Route to create a group chat 
 	@PostMapping("/group")
-	public ResponseEntity<Chat>creatGroupHandler(@RequestBody GroupChatRequest groupChatRequest, @RequestHeader("Authorization") String jwt) throws UserException{
+	public ResponseEntity<Chat>creatGroupHandler(@RequestBody GroupChatRequest groupChatRequest, @RequestHeader("Authorization") String jwt) throws UserException, S3Exception, AwsServiceException, SdkClientException, IOException{
 		// Retrieves the user's profile based on the JWT token
 		User reqUser = userService.findUserProfile(jwt);
 		// Creates the group chat based on the request data and logged-in user's ID
@@ -125,7 +130,7 @@ public class ChatController {
 	
 	// Route to update a group chat 
 	@PutMapping("update/{chatId}")
-	public ResponseEntity<Chat>renameGroupnHandler( @PathVariable String chatId, @RequestBody UpdateRequest req ,@RequestHeader("Authorization") String jwt) throws UserException, ChatException{
+	public ResponseEntity<Chat>renameGroupnHandler( @PathVariable String chatId, @RequestBody UpdateRequest req ,@RequestHeader("Authorization") String jwt) throws UserException, ChatException, S3Exception, AwsServiceException, SdkClientException, IOException{
 		// Retrieves the user's profile based on the JWT token
 		User reqUser = userService.findUserProfile(jwt);
 		

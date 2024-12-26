@@ -1,5 +1,6 @@
 package com.fabricio.practice.chat_fusion.controller;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,10 @@ import com.fabricio.practice.chat_fusion.model.User;
 import com.fabricio.practice.chat_fusion.request.UpdateRequest;
 import com.fabricio.practice.chat_fusion.response.ApiResponse;
 import com.fabricio.practice.chat_fusion.service.UserService;
+
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 //Controller responsible for user-related API endpoints
 @RestController
@@ -51,7 +56,7 @@ public class UserController {
 	
 	// Route to update the user's profile information
 	@PutMapping("/update")
-	public ResponseEntity<ApiResponse> updateUserHandler(@RequestBody UpdateRequest req, @RequestHeader("Authorization") String jwt) throws UserException {
+	public ResponseEntity<ApiResponse> updateUserHandler(@RequestBody UpdateRequest req, @RequestHeader("Authorization") String jwt) throws UserException, S3Exception, AwsServiceException, SdkClientException, IOException {
 		// Retrieves the current user's profile based on the JWT token
 		User user = userService.findUserProfile(jwt);
 		// Updates the user's information with the data from the request body

@@ -86,8 +86,6 @@ export default function ({ chatId }) {
         if (message) {
             // Adds the message as the content
             formData.append("content", message);
-            // Specifies the type as text
-            formData.append("type", "text");
         } else if (audioBlob) {
             // Adds the audio as the file
             formData.append("file", audioBlob);
