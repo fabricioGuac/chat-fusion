@@ -98,7 +98,14 @@ export default function ({ chatId }) {
             formData.append("type", getFileType(file));
         }
 
+
+
+
         try {
+            // Log all FormData entries
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}:`, value);
+            }
             // Sends the data to the server
             await post("/api/messages/send", formData);
             // Resets the state after a successful send
@@ -112,57 +119,65 @@ export default function ({ chatId }) {
 
     return (
         <div className="flex flex-col items-center p-4 bg-white w-full mx-auto">
-            {/* Message input and send button */}
-            <div className="flex items-center w-full gap-2 mb-3">
-                <textarea
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    className="flex-grow p-2 border rounded-md bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            {/* Form to handle submit on Enter */}
+            <form
+                onSubmit={(e) => {
+                    e.preventDefault(); // Prevent the default form submission
+                    handleSend(); // Call the send handler
+                }}
+                className="w-full"
+            >
+                {/* Message input and send button */}
+                <div className="flex items-center w-full gap-2 mb-3">
+                    <input
+                        type="text"
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        className="flex-grow p-2 border rounded-md bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Type your message..."
+                    />
+
+                    <div className="flex flex-col gap-2">
+                        <button
+                            type="submit"
+                            className={`px-4 py-2 rounded-md text-white ${!message && !file && !audioBlob
+                                    ? "bg-gray-300 cursor-not-allowed"
+                                    : "bg-blue-500 hover:bg-blue-600"
+                                }`}
+                            disabled={!message && !file && !audioBlob}
+                        >
+                            {audioBlob ? "Send Audio" : file ? "Send Media" : "Send Message"}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={audioBlob ? stopRecording : startRecording}
+                            className={`px-4 py-2 rounded-md text-white ${audioBlob
+                                    ? "bg-red-500 hover:bg-red-600"
+                                    : "bg-yellow-500 hover:bg-yellow-600"
+                                } focus:outline-none focus:ring-2`}
+                        >
+                            {audioBlob ? "Stop" : "Record"}
+                        </button>
+                    </div>
+                </div>
+
+                {/* Displays the selected file or a message indicating the audio recording is ready */}
+                {(file || audioBlob) && (
+                    <div className="w-full text-sm text-gray-600 mb-3">
+                        {file && <p>{file.name}</p>}
+                        {audioBlob && <p>{"Audio ready"}</p>}
+                    </div>
+                )}
+
+                {/* File upload input */}
+                <input
+                    type="file"
+                    onChange={handleFileChange}
+                    accept="image/*,video/*,audio/*,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                    className="w-full p-2 mb-3 text-sm text-gray-600 border rounded-md cursor-pointer bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-
-
-                <div className="flex flex-col gap-2">
-                    <button 
-                    onClick={handleSend}
-                    className={`px-4 py-2 rounded-md text-white ${
-                        !message && !file && !audioBlob ? 
-                        "bg-gray-300 ursor-not-allowed" : 
-                        "bg-blue-500 hover:bg-blue-600"
-                    }`}
-                    disabled={!message && !file && !audioBlob}
-                    >
-                        {audioBlob ? "Send Audio" : file ? "Send Media" : "Send Message"}
-                    </button>
-
-                    <button
-                    onClick={audioBlob ? stopRecording : startRecording}
-                    className={`px-4 py-2 rounded-md text-white ${
-                        audioBlob ?
-                        "bg-red-500 hover:bg-red-600" : 
-                        "bg-yellow-500 hover:bg-yellow-600"
-                    } focus:outline-none focus:ring-2`}
-                    >
-                        {audioBlob ? "Stop" : "Record"}
-                    </button>
-                </div>
-            </div>
-
-            {/* Displays the selected file or a message indicating the audio recording is ready */}
-            {file || audioBlob && (
-                <div className="w-full text-sm text-gray-600 mb-3">
-                    {file && <p>{file.name}</p>}
-                    {audioBlob && <p>{"Audio ready"}</p>}
-                </div>
-            )}
-
-            {/* File upload input */}
-            <input
-                type="file"
-                onChange={handleFileChange}
-                accept="image/*,video/*,audio/*,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-                className="w-full p-2 mb-3 text-sm text-gray-600 border rounded-md cursor-pointer bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-
+            </form>
         </div>
     );
 }

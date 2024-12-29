@@ -4,9 +4,11 @@ import java.io.IOException;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -59,8 +61,8 @@ public class ChatController {
 	}
 	
 	// Route to create a group chat 
-	@PostMapping("/group")
-	public ResponseEntity<Chat>creatGroupHandler(@RequestBody GroupChatRequest groupChatRequest, @RequestHeader("Authorization") String jwt) throws UserException, S3Exception, AwsServiceException, SdkClientException, IOException{
+	@PostMapping(value = "/group", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<Chat>creatGroupHandler(@ModelAttribute GroupChatRequest groupChatRequest, @RequestHeader("Authorization") String jwt) throws UserException, S3Exception, AwsServiceException, SdkClientException, IOException{
 		// Retrieves the user's profile based on the JWT token
 		User reqUser = userService.findUserProfile(jwt);
 		// Creates the group chat based on the request data and logged-in user's ID
@@ -129,8 +131,8 @@ public class ChatController {
 	
 	
 	// Route to update a group chat 
-	@PutMapping("update/{chatId}")
-	public ResponseEntity<Chat>renameGroupnHandler( @PathVariable String chatId, @RequestBody UpdateRequest req ,@RequestHeader("Authorization") String jwt) throws UserException, ChatException, S3Exception, AwsServiceException, SdkClientException, IOException{
+	@PutMapping(value ="update/{chatId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<Chat>renameGroupnHandler( @PathVariable String chatId, @ModelAttribute UpdateRequest req ,@RequestHeader("Authorization") String jwt) throws UserException, ChatException, S3Exception, AwsServiceException, SdkClientException, IOException{
 		// Retrieves the user's profile based on the JWT token
 		User reqUser = userService.findUserProfile(jwt);
 		

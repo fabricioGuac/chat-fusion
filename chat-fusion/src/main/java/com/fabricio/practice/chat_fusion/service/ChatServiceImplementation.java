@@ -272,7 +272,7 @@ public class ChatServiceImplementation implements ChatService {
 	            if (chat.getAdminIds().contains(reqUser.getId())) {
 	            	
 	            	// Deletes the messages related to the chat
-	            	messageRepository.deleteByChatId(chatId);
+	            	messageRepository.deleteAllByChatId(chatId);
 	            	
 	            	// Deletes all files in the chat from the AWS S3 bucket
 		        	awsS3Client.deleteAllChatFiles(chatId);
@@ -288,7 +288,7 @@ public class ChatServiceImplementation implements ChatService {
 	        // Handles deletion for one to one chats chats
 	        if (chat.getMembers().contains(reqUser)) {
 	        	// Deletes the messages related to the chat
-	        	messageRepository.deleteByChatId(chatId);
+	        	messageRepository.deleteAllByChatId(chatId);
 	        	
 	        	// Deletes all files in the chat from the AWS S3 bucket
 	        	awsS3Client.deleteAllChatFiles(chatId);

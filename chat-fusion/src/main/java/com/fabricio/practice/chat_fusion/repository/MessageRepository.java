@@ -14,8 +14,9 @@ public interface MessageRepository extends MongoRepository <Message, String>{
 	@Query("{ 'chatId': ?0 }")
 	public Page<Message> findByChatId(String chatId, Pageable pageable);
 	
-	// Custom query to delete all messages from a chat
-	@Query("{ 'chatId': ?0 }")
-	public void deleteByChatId(String chatId);
+	// Method to delete all messages from a chat
+	public void deleteAllByChatId(String chatId);
+
+
 
 }

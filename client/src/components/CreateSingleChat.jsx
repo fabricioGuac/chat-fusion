@@ -1,7 +1,7 @@
 import { post } from "../utils/api";
 import SearchUser from "./SearchUser";
 
-export default function CreateSingleChat({setSelectedView}) {
+export default function CreateSingleChat({setSelectedView, currentUser}) {
 
     // Function to handle when the user is selected
     const handleSelectUser = async (user) => {
@@ -10,7 +10,7 @@ export default function CreateSingleChat({setSelectedView}) {
             const response = await post("/api/chats/single", { userId: user.id });
 
             // Sets the view to chat and passes the data from the response
-            setSelectedView({type: "chat", data: response})
+            setSelectedView({type: "chat", data: {chat:response, currentUser}})
         } catch (error) {
             console.log("Failed to create the chat ", error);
         }

@@ -6,7 +6,7 @@ export default function AddUserToGroup({ chatId, closeModal }) {
     const handleAddUser = async (user) => {
         try {
             // Makes the API call to add the selected user to the group
-            await put(`/api/${chatId}/add/${user.id}`);
+            await put(`/api/chats/${chatId}/add/${user.id}`);
             // Closes the modal on success
             closeModal();
             // TODO: handle the notification with WebSocket

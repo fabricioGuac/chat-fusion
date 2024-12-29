@@ -4,9 +4,11 @@ import java.io.IOException;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -47,8 +49,8 @@ public class MessageController {
 	}
 	
 	// Route to create a new message
-	@PostMapping("/send")
-	public ResponseEntity<Message> sendMessageHandler(@RequestBody SendMessageRequest req, @RequestHeader("Authorization") String jwt) throws  ChatException, MessageException, UserException, S3Exception, AwsServiceException, SdkClientException, IOException {
+	@PostMapping(value = "/send", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<Message> sendMessageHandler(@ModelAttribute SendMessageRequest req, @RequestHeader("Authorization") String jwt) throws  ChatException, MessageException, UserException, S3Exception, AwsServiceException, SdkClientException, IOException {
 		// Retrieves the user's profile based on the JWT token
 		User reqUser = userService.findUserProfile(jwt);
 		// Creates the message
@@ -56,6 +58,7 @@ public class MessageController {
 		
 		return new ResponseEntity<Message>(mssg, HttpStatus.OK);
 	}
+
 	
 	// Route to get messages from a chat with pagination
 	@GetMapping("/chat/{chatId}")

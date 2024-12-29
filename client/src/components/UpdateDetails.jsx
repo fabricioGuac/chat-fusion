@@ -23,9 +23,9 @@ export default function UpdateDetails({ data, closeModal }) {
     
         // Creates a FormData object to send data
         const formDataToSend = new FormData();
-        formDataToSend.append("title", formData.title);
+        formDataToSend.append("name", formData.title);
         if (formData.image) {
-            formDataToSend.append("image", formData.image);
+            formDataToSend.append("pfp", formData.image);
         }
     
         console.log("Form Data:", formData);

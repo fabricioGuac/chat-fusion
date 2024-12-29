@@ -27,11 +27,11 @@ public class Awsconfig {
 	// Bean definition for theAWS S3 client
 	// Creates and configures the  instance of the S3 client
 	@Bean
-	public S3Client s3Client() {
+	public S3Client s3Client() {       
 		return S3Client.builder()
 				.region(Region.of(region))
 				.credentialsProvider(StaticCredentialsProvider.create(
-							AwsBasicCredentials.create(accessKey, accessKey)
+							AwsBasicCredentials.create(accessKey, secretKey)
 						))
 				.build();
 	}

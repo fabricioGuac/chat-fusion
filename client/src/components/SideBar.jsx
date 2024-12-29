@@ -61,7 +61,9 @@ export default function SideBar({ onSelectView }) {
 
             <div className="p-4">
                 <button
-                    onClick={() => onSelectView({ type: "single-create" })}
+                    onClick={() => 
+                        onSelectView({ type: "single-create", data: { currentUser } })
+                    }
                     className="flex items-center justify-center bg-gray-200 p-2 rounded w-full hover:bg-gray-300"
                 >
                     <span role="img" aria-label="search" className="text-lg">
@@ -98,7 +100,7 @@ export default function SideBar({ onSelectView }) {
                         const imageSrc = isSelfChat
                             ? currentUser.pfp || "/logo192.png"
                             : chat.group
-                            ? chat.pfp || "/logo192.png"
+                            ? chat.pfp || chat.chat_image || "/logo192.png"
                             : chat.members[0].id === currentUser.id
                             ? chat.members[1].pfp || "/logo192.png"
                             : chat.members[0].pfp || "/logo192.png";

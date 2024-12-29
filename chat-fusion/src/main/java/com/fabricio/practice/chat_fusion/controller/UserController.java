@@ -4,11 +4,12 @@ import java.io.IOException;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -55,8 +56,8 @@ public class UserController {
 	}
 	
 	// Route to update the user's profile information
-	@PutMapping("/update")
-	public ResponseEntity<ApiResponse> updateUserHandler(@RequestBody UpdateRequest req, @RequestHeader("Authorization") String jwt) throws UserException, S3Exception, AwsServiceException, SdkClientException, IOException {
+	@PutMapping(value = "/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<ApiResponse> updateUserHandler(@ModelAttribute UpdateRequest req, @RequestHeader("Authorization") String jwt) throws UserException, S3Exception, AwsServiceException, SdkClientException, IOException {
 		// Retrieves the current user's profile based on the JWT token
 		User user = userService.findUserProfile(jwt);
 		// Updates the user's information with the data from the request body

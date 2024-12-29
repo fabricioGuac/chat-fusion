@@ -30,7 +30,7 @@ export default function DeleteChatModal({ chatId, closeModal }) {
         <>
         {/* Modal header */}
             <h2 className="text-lg font-bold text-gray-800 mb-4">Confirm chat deletion</h2>
-            <p className="text-sm text-gray-600 mb-4">To confirm deletion type <strong>I want to delet the chat</strong></p>
+            <p className="text-sm text-gray-600 mb-4">To confirm deletion type <strong>I want to delete the chat</strong></p>
             
             {/* Confirmation input */}
             <input type="text"

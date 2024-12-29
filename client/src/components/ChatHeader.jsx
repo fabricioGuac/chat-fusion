@@ -22,7 +22,7 @@ export default function ChatHeader({ chat, currentUser }) {
     const imageSrc = isSelfChat
         ? currentUser.pfp || "/logo192.png"
         : chat.group
-            ? chat.pfp || "/logo192.png"
+            ? chat.pfp || chat.chat_image || "/logo192.png"
             : chat.members[0].id === currentUser.id
                 ? chat.members[1].pfp || "/logo192.png"
                 : chat.members[0].pfp || "/logo192.png";

@@ -20,13 +20,15 @@ export default function Dashboard() {
         }
     }, []);
 
+
+    //TODO: Refactor to use redux or react context API to avoid prop drilling
     // Dynamically render the content based on `selectedView`
     const renderContent = () => {
         switch (selectedView.type) {
             case "chat":
                 return <Chat chat={selectedView.data.chat} currentUser={selectedView.data.currentUser} setSelectedView={setSelectedView} /> ;
             case "single-create":
-                return <CreateSingleChat setSelectedView={setSelectedView} /> ;
+                return <CreateSingleChat setSelectedView={setSelectedView} currentUser={selectedView.data.currentUser} /> ;
             case "group-create":
                 return <CreateGroup setSelectedView={setSelectedView} /> ;
             case "update-details":

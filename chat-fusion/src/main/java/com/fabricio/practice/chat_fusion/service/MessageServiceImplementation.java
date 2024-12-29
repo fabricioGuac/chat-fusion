@@ -92,7 +92,7 @@ public class MessageServiceImplementation implements MessageService {
 	    }
 	    
 	    // Queries messages with pagination, ordered by timestamp in descending order
-	    Pageable pageable = PageRequest.of(skip / limit, limit, Sort.by(Sort.Order.desc("timestamp")));
+	    Pageable pageable = PageRequest.of(skip / limit, limit, Sort.by(Sort.Order.asc("timestamp")));
 	    Page<Message> messagePage = messageRepository.findByChatId(chatId, pageable);
 	    
 

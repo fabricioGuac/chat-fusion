@@ -41,8 +41,10 @@ export default function ChatBody({ chat, currentUser }) {
 
     // Fetches the messages when the chat or the skip changes
     useEffect(() => {
+        //Clear the messages for each chat
+        setMessages([]);
         fetchMessages();
-    }, [chat.id, skip]);
+    }, [chat.id]);
 
     // Adds a scroll event listener to the chat body element to detect when the user scrolls to the top
     useEffect(() => {

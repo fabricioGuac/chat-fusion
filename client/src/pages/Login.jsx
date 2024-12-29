@@ -125,7 +125,7 @@ export default function Login() {
                         type="submit"
                         className="w-full bg-teal-700 text-white py-3 px-4 rounded-lg hover:bg-teal-800 transition duration-300"
                     >
-                        Sign Up
+                        Login
                     </button>
                 </form>
                 <Link

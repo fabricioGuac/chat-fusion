@@ -30,18 +30,26 @@ const fetchApi = async (url, options = {}) => {
 export const get = async (url) => fetchApi(url, { method: "GET" });
 
 // A wrapper function for POST requests including a JSON body
-export const post = async (url, body) =>
-    fetchApi(url, {
+export const post = async (url, body) => {
+    // Check if the body is an instance of FormData
+    const isFormData = body instanceof FormData;
+
+    return fetchApi(url, {
         method: "POST",
-        body: JSON.stringify(body), // Converts the body object to a JSON string
+        body: isFormData ? body : JSON.stringify(body), 
     });
+}
 
 // A wrapper function for PUT requests including a JSON body
-export const put = async (url, body) =>
+export const put = async (url, body) => {
+    // Check if the body is an instance of FormData
+    const isFormData = body instanceof FormData;
+
     fetchApi(url, {
         method: "PUT",
-        body: JSON.stringify(body), // Converts the body object to a JSON string
+        body: isFormData ? body :JSON.stringify(body), // Use FormData directly or JSON stringify
     });
+}
 
 // A wrapper function for DELETE requests
 export const del = async (url) => fetchApi(url, { method: "DELETE" });

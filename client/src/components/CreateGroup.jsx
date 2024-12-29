@@ -29,7 +29,11 @@ export default function CreateGroup({ setSelectedView }) {
 
             // Prepare FormData object to send multipart form data
             const formData = new FormData();
-            formData.append("userIds", JSON.stringify(memberIds)); // Add member IDs
+            // Adds each user ID individually
+            members.forEach((member, index) => {
+                formData.append(`userIds[${index}]`, member.id); // Append each member ID
+            });
+
             formData.append("chat_name", groupName); // Add group name
             if (groupImage) {
                 formData.append("chat_image", groupImage); // Add the image file if it exists
