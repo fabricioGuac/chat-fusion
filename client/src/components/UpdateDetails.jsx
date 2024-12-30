@@ -13,7 +13,7 @@ export default function UpdateDetails({ data, closeModal }) {
 
     // State to store the form data
     const [formData, setFormData] = useState({
-        title: details.username || details.group_name,
+        title: details.username || details.chat_name,
         image: null,
     });
 

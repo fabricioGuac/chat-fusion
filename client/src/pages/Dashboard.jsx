@@ -26,9 +26,9 @@ export default function Dashboard() {
     const renderContent = () => {
         switch (selectedView.type) {
             case "chat":
-                return <Chat chat={selectedView.data.chat} currentUser={selectedView.data.currentUser} setSelectedView={setSelectedView} /> ;
+                return <Chat chat={selectedView.data.chat}  setSelectedView={setSelectedView} /> ;
             case "single-create":
-                return <CreateSingleChat setSelectedView={setSelectedView} currentUser={selectedView.data.currentUser} /> ;
+                return <CreateSingleChat setSelectedView={setSelectedView}  /> ;
             case "group-create":
                 return <CreateGroup setSelectedView={setSelectedView} /> ;
             case "update-details":

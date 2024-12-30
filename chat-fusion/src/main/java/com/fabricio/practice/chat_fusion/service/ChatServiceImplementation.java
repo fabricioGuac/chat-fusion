@@ -1,6 +1,7 @@
 package com.fabricio.practice.chat_fusion.service;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -117,8 +118,11 @@ public class ChatServiceImplementation implements ChatService {
 		// Adds the requesting user and other members to the group chat
 		groupChat.getMembers().add(reqUser);
 		
+		// Handles null or empty userIds in case it is a solo group at the moment of creation
+		List<String> userIds = req.getUserIds() != null ? req.getUserIds() : Collections.emptyList();
+		
 		// Validates that all provided user IDs correspond to existing users and adds them to the group
-		for (String memberId : req.getUserIds()) {
+		for (String memberId : userIds) {
 			groupChat.getMembers().add(userService.findUserById(memberId));
 		 }
 
