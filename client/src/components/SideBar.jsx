@@ -1,12 +1,18 @@
 import { useState, useEffect } from "react";
 import { get } from "../utils/api";
 
+import { useDispatch } from "react-redux";
+import { setUser } from "../redux/userSlice";
+
 export default function SideBar({ onSelectView }) {
+    const dispatch = useDispatch();
+
     // State  variables to handle the data and it's loading state
     const [currentUser, setCurrentUser] = useState(null);
     const [chats, setChats] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    // const currentUser = useSelector((state) => state.user.user);
 
 
     // UseEffect to fetch user profile and chats on component mount
@@ -20,6 +26,8 @@ export default function SideBar({ onSelectView }) {
                     get("/api/chats/user"),
                 ]);
 
+                //Sets the user data to the redux state
+                dispatch(setUser(userData));
                 // Updates the state variables with the fetched data 
                 setCurrentUser(userData);
                 setChats(chatsData);
@@ -118,7 +126,7 @@ export default function SideBar({ onSelectView }) {
                             <li
                                 key={chat.id}
                                 className="p-2 flex items-center gap-4 hover:bg-gray-200 cursor-pointer"
-                                onClick={() => onSelectView({ type: "chat", data: {chat, currentUser} })}
+                                onClick={() => onSelectView({ type: "chat", data: {chat} })}
                             >
                                 <img
                                     src={imageSrc}

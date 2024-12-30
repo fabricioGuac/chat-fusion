@@ -174,7 +174,7 @@ export default function ({ chatId }) {
                 <input
                     type="file"
                     onChange={handleFileChange}
-                    accept="image/*,video/*,audio/*,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                    accept="image/*,video/*,audio/*"
                     className="w-full p-2 mb-3 text-sm text-gray-600 border rounded-md cursor-pointer bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
             </form>

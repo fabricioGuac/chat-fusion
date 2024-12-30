@@ -25,7 +25,6 @@ export default function CreateGroup({ setSelectedView }) {
         e.preventDefault();
 
         try {
-            const memberIds = members.map((m) => m.id);
 
             // Prepare FormData object to send multipart form data
             const formData = new FormData();

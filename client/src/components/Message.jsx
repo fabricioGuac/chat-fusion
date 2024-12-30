@@ -85,14 +85,7 @@ export default function Message({ message, currentUser }) {
                             </video>
                         ) : (
                             <p>
-                                <a
-                                    href={content}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="break-words text-blue-700 underline"
-                                >
-                                    {content}
-                                </a>
+                                Unsupported media type
                             </p>
                         )}
                     </div>
@@ -108,7 +101,7 @@ export default function Message({ message, currentUser }) {
                 {/* Shows edit and delete options */}
                 {(isCurrentUser || currentUser.isAdmin) && (
                     <div className="flex items-center ml-2 space-x-2">
-                        {isCurrentUser && !isEditing && (
+                        {isCurrentUser && !isEditing && type === "text" && (
                             <button
                                 onClick={() => setIsEditing(true)}
                                 className="text-yellow-500 hover:underline text-sm"
