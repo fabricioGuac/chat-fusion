@@ -10,6 +10,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import com.fabricio.practice.chat_fusion.exception.ChatException;
@@ -17,6 +21,7 @@ import com.fabricio.practice.chat_fusion.exception.MessageException;
 import com.fabricio.practice.chat_fusion.model.Chat;
 import com.fabricio.practice.chat_fusion.model.Message;
 import com.fabricio.practice.chat_fusion.model.User;
+import com.fabricio.practice.chat_fusion.repository.ChatRepository;
 import com.fabricio.practice.chat_fusion.repository.MessageRepository;
 import com.fabricio.practice.chat_fusion.request.EditMessageRequest;
 import com.fabricio.practice.chat_fusion.request.SendMessageRequest;
@@ -32,16 +37,22 @@ public class MessageServiceImplementation implements MessageService {
 
 	// Chat Service for handling user-related operations
 	public ChatService chatService;
+	// Chat repository to interact with chat data in the database
+	public ChatRepository chatRepository;
 	// Message repository to interact with message data in the database
 	public MessageRepository messageRepository;
 	// AWS Service to interact with the S3 bucket
 	private AwsService awsS3Client;
+	// MongoTemplate for performing custom MongoDB queries and updates 
+	private MongoTemplate mongoTemplate;
 	
-	// Constructor for dependency injection of ChatService, MessageRepository and AwsService
-	public MessageServiceImplementation(ChatService chatService, MessageRepository messageRepository, AwsService awsS3Client) {
+	// Constructor for dependency injection of ChatService, ChatRepository, MongoTemplate, MessageRepository and AwsService
+	public MessageServiceImplementation(ChatService chatService, ChatRepository chatRepository, MessageRepository messageRepository, AwsService awsS3Client, MongoTemplate mongoTemplate) {
 		this.chatService = chatService;
+		this.chatRepository = chatRepository;
 		this.messageRepository = messageRepository;
 		this.awsS3Client = awsS3Client;
+		this.mongoTemplate = mongoTemplate;
 	}
 	
 	// Creates a message in the specified chat
@@ -76,6 +87,16 @@ public class MessageServiceImplementation implements MessageService {
 		mssg.setChatId(chat.getId());
 		mssg.setTimestamp(LocalDateTime.now());
 		
+		// Not ideal if you can think of a better approach please let me know
+		// Updates unread counts for all members except the sender
+	    chat.getUnreadCounts().forEach((userId, count) -> {
+	        if (!userId.equals(reqUser.getId())) {
+	            chat.getUnreadCounts().put(userId, count + 1);
+	        }
+	    });
+	    // Saves the changes to the chat
+	    chatRepository.save(chat);
+	    
 		// Saves and returns the new message
 		return messageRepository.save(mssg);
 	}
@@ -89,6 +110,31 @@ public class MessageServiceImplementation implements MessageService {
 	    // Checks if the requesting user is a member of the chat
 	    if (!chat.getMembers().contains(reqUser)) {
 	        throw new ChatException("You are not a member of this chat and cannot view its messages.");
+	    }
+	    
+	    
+	 // Gets the unread count for the user
+	    int unreadCount = chat.getUnreadCounts().getOrDefault(reqUser.getId(), 0);
+	    
+	    if (unreadCount > 0) {
+	    	// Query to find unread messages not marked as read by the user
+	        Query query = new Query()
+	            .addCriteria(Criteria.where("chatId").is(chatId)
+	                .and("readBy").not().elemMatch(Criteria.where("_id").is(reqUser.getId()))
+	                // Excludes messages from the user
+	                .and("user").ne(reqUser));
+
+
+	        // Adds user to `readBy` field
+	        Update update = new Update().addToSet("readBy", reqUser.getId()); 
+	        
+			// Performs bulk update
+	        mongoTemplate.updateMulti(query, update, Message.class); 
+
+	        // Resets the unread count for the user
+	        chat.getUnreadCounts().put(reqUser.getId(), 0);
+	        
+	        chatRepository.save(chat);
 	    }
 	    
 	    // Queries messages with pagination, ordered by timestamp in descending order

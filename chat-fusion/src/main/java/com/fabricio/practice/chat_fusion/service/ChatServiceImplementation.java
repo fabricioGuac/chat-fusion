@@ -63,6 +63,10 @@ public class ChatServiceImplementation implements ChatService {
 		chat.getMembers().add(reqUser);
 		chat.setGroup(false);
 		
+		// Initializes unread counts
+		chat.getUnreadCounts().put(reqUser.getId(), 0);
+		chat.getUnreadCounts().put(userId2, 0);
+		
 		// Saves and returns the new chat
 		return chatRepository.save(chat); 
 		
@@ -117,6 +121,8 @@ public class ChatServiceImplementation implements ChatService {
 		
 		// Adds the requesting user and other members to the group chat
 		groupChat.getMembers().add(reqUser);
+		// Initializes the unread count for the creator of the group
+		groupChat.getUnreadCounts().put(reqUser.getId(), 0);
 		
 		// Handles null or empty userIds in case it is a solo group at the moment of creation
 		List<String> userIds = req.getUserIds() != null ? req.getUserIds() : Collections.emptyList();
@@ -124,6 +130,8 @@ public class ChatServiceImplementation implements ChatService {
 		// Validates that all provided user IDs correspond to existing users and adds them to the group
 		for (String memberId : userIds) {
 			groupChat.getMembers().add(userService.findUserById(memberId));
+			// Initializes the unread counts
+			groupChat.getUnreadCounts().put(memberId, 0);
 		 }
 
 		// Saves the new group chat to the database and returns it
@@ -139,6 +147,8 @@ public class ChatServiceImplementation implements ChatService {
 
 			if(chat.getAdminIds().contains(reqUserId)) {
 				chat.getMembers().add(user2);
+				// Initializes the unread counts for the new user
+				chat.getUnreadCounts().put(userId2, 0);
 				// Saves and return the updated chat
 				return chatRepository.save(chat);
 				}
@@ -235,6 +245,8 @@ public class ChatServiceImplementation implements ChatService {
 	        if (chat.getAdminIds().contains(reqUser.getId())) {
 	        	chat.getMembers().remove(user2);
 	            chat.getAdminIds().remove(user2.getId());
+	            // Removes the user unread count
+	            chat.getUnreadCounts().remove(userId2);
 
 	            // Handles the cases where there are no admins lefs
 	            if (chat.getAdminIds().isEmpty()) {
@@ -254,6 +266,8 @@ public class ChatServiceImplementation implements ChatService {
 	        // Allow users to remove themselves if they are not admins
 	        if (chat.getMembers().contains(reqUser) && reqUser.getId().equals(userId2)) {
 	            chat.getMembers().remove(user2);
+	            // Removes the user unread count
+	            chat.getUnreadCounts().remove(userId2);
 	            return chatRepository.save(chat);
 	        }
 

@@ -3,7 +3,7 @@ import { del, put } from "../utils/api";
 
 export default function Message({ message, currentUser }) {
     // Deconstructs the message
-    const { id, content, user, timestamp, type } = message;
+    const { id, content, user, timestamp, type, readBy } = message;
 
     // State variables to handle editing state, the edit content and error messages
     const [isEditing, setIsEditing] = useState(false);
@@ -97,6 +97,29 @@ export default function Message({ message, currentUser }) {
                 <div className="text-sm mt-2 text-right">
                     {new Date(timestamp).toLocaleDateString()}
                 </div>
+
+
+
+                {/* Display read status for the message */}
+                {readBy && isCurrentUser && (
+                    <div className="mt-2 relative group">
+                        {readBy.length > 0 ? (<span className="text-sm cursor-pointer hover:underline">
+                            Read by {readBy.length} {readBy.length > 1 ? "users" : "user"}
+                            {/* Hover container */}
+                            <div className="hidden group-hover:block absolute left-0 bg-gray-400 p-2 border rounded shadow-lg  mt-1 z-10">
+                                <ul className="space-y-1">
+                                    {readBy.map((reader) => (
+                                        <li key={reader.id} className="text-sm text-white">{reader.username}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </span>) : (<span className="text-sm">
+                            Unread
+                                </span>)
+                        }
+                    </div>
+                )}
+
 
                 {/* Shows edit and delete options */}
                 {(isCurrentUser || currentUser.isAdmin) && (

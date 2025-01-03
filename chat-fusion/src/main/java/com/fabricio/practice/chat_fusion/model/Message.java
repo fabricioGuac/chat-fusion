@@ -1,7 +1,9 @@
 package com.fabricio.practice.chat_fusion.model;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -24,6 +26,9 @@ public class Message {
     // Use @DBRef to reference User entities for user
     @DBRef
     private User user;
+    @DBRef
+    private Set<User> readBy = new HashSet<>();
+    
     private String chatId; 
 
     // No-args constructor for serialization and deserialization frameworks
@@ -31,22 +36,25 @@ public class Message {
     }
 
     // Full-args constructor for initializing all fields of the Message object
-    public Message(String id, String type, String content, LocalDateTime timestamp, User user, String chatId) {
+    public Message(String id, String type, String content, LocalDateTime timestamp, User user, Set<User> readBy,
+			String chatId) {
 		super();
 		this.id = id;
 		this.type = type;
 		this.content = content;
 		this.timestamp = timestamp;
 		this.user = user;
+		this.readBy = readBy;
 		this.chatId = chatId;
 	}
-
+    
 	// Getters and Setters
     public String getId() {
         return id;
     }
 
-    public void setId(String id) {
+
+	public void setId(String id) {
         this.id = id;
     }
 
@@ -89,18 +97,28 @@ public class Message {
 	public void setType(String type) {
 		this.type = type;
 	}
+	
+	
 
-    // To string method
+    public Set<User> getReadBy() {
+		return readBy;
+	}
+
+	public void setReadBy(Set<User> readBy) {
+		this.readBy = readBy;
+	}
+
+	// To string method
 	@Override
 	public String toString() {
-		return "Message [id=" + id + ", type=" + type + ", content=" + content + ", timestamp=" + timestamp
-				+ ", user=" + user + ", chatId=" + chatId + "]";
+		return "Message [id=" + id + ", type=" + type + ", content=" + content + ", timestamp=" + timestamp + ", user="
+				+ user + ", readBy=" + readBy + ", chatId=" + chatId + "]";
 	}
 
 	// Hash code method
 	@Override
 	public int hashCode() {
-		return Objects.hash(chatId, content, id, timestamp, type, user);
+		return Objects.hash(chatId, content, id, readBy, timestamp, type, user);
 	}
 
 	// Equals method
@@ -114,7 +132,9 @@ public class Message {
 			return false;
 		Message other = (Message) obj;
 		return Objects.equals(chatId, other.chatId) && Objects.equals(content, other.content)
-				&& Objects.equals(id, other.id) && Objects.equals(timestamp, other.timestamp)
-				&& Objects.equals(type, other.type) && Objects.equals(user, other.user);
+				&& Objects.equals(id, other.id) && Objects.equals(readBy, other.readBy)
+				&& Objects.equals(timestamp, other.timestamp) && Objects.equals(type, other.type)
+				&& Objects.equals(user, other.user);
 	}
+
 }

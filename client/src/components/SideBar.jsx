@@ -5,14 +5,13 @@ import { useDispatch } from "react-redux";
 import { setUser } from "../redux/userSlice";
 
 export default function SideBar({ onSelectView }) {
+    // Dispatch used to send actions to the Redux store
     const dispatch = useDispatch();
 
     // State  variables to handle the data and it's loading state
     const [currentUser, setCurrentUser] = useState(null);
     const [chats, setChats] = useState([]);
     const [loading, setLoading] = useState(true);
-
-    // const currentUser = useSelector((state) => state.user.user);
 
 
     // UseEffect to fetch user profile and chats on component mount
@@ -26,7 +25,7 @@ export default function SideBar({ onSelectView }) {
                     get("/api/chats/user"),
                 ]);
 
-                //Sets the user data to the redux state
+                // Stores the fetched user data in the Redux store
                 dispatch(setUser(userData));
                 // Updates the state variables with the fetched data 
                 setCurrentUser(userData);
@@ -134,11 +133,12 @@ export default function SideBar({ onSelectView }) {
                                     className="w-10 h-10 rounded-full object-cover"
                                 />
                                 <span>{displayName}</span>
+                                {/* Unread message counter for the logged in user */}
+                                {(chat.unreadCounts[currentUser.id] || 0) > 0  && <span className="bg-red-200 rounded-full ml-8 px-2">{chat.unreadCounts[currentUser.id]}</span>}
                             </li>
                         );
                     })}
                 </ul>
-                
                 )}
             </div>
         </aside>

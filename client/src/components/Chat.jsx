@@ -1,16 +1,15 @@
 import ChatHeader from "./ChatHeader";
 import ChatBody from "./ChatBody";
 import ChatInput from "./ChatInput";
-
 import { useSelector } from "react-redux";
 
 
 // Chat component combining the header, body and input sections
 export default function Chat({ chat }) {
 
-    // Imports the user data from the state
+    // Retrieves the current user data from the Redux store
     const currentUser = useSelector((state) => state.user.user);
-
+    // Renders a loading indicator if the user data is not yet available
     if (!currentUser) {
         return <div>Loading...</div>;
     }

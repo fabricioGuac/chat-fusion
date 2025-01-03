@@ -1,6 +1,8 @@
 package com.fabricio.practice.chat_fusion.model;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -19,8 +21,9 @@ public class Chat {
     private String chat_image;
     private boolean isGroup;
     private String createdById;
+    private Map<String, Integer> unreadCounts = new HashMap<>();
     private Set<String> adminIds = new HashSet<>();
- // Use @DBRef to reference User entities for members
+    // Use @DBRef to reference User entities for members
     @DBRef
     private Set<User> members = new HashSet<>();
 
@@ -30,22 +33,26 @@ public class Chat {
 
     // Full-args constructor for initializing all fields of the Chat object
     public Chat(String id, String chat_name, String chat_image, boolean isGroup, String createdById,
-                Set<String> adminIds, Set<User> members) {
-        this.id = id;
-        this.chat_name = chat_name;
-        this.chat_image = chat_image;
-        this.isGroup = isGroup;
-        this.createdById = createdById;
-        this.adminIds = adminIds;
-        this.members = members;
-    }
+			Map<String, Integer> unreadCounts, Set<String> adminIds, Set<User> members) {
+		super();
+		this.id = id;
+		this.chat_name = chat_name;
+		this.chat_image = chat_image;
+		this.isGroup = isGroup;
+		this.createdById = createdById;
+		this.unreadCounts = unreadCounts;
+		this.adminIds = adminIds;
+		this.members = members;
+	}
+
 
     // Getters and Setters
     public String getId() {
         return id;
     }
 
-    public void setId(String id) {
+   
+	public void setId(String id) {
         this.id = id;
     }
 
@@ -96,25 +103,44 @@ public class Chat {
     public void setMembers(Set<User> members) {
         this.members = members;
     }
+    
+    
 
-    // hashCode, equals, and toString for proper object comparison and debugging
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, chat_name, createdById);
-    }
+    public Map<String, Integer> getUnreadCounts() {
+		return unreadCounts;
+	}
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null || getClass() != obj.getClass())
-            return false;
-        Chat other = (Chat) obj;
-        return Objects.equals(id, other.id);
-    }
+	public void setUnreadCounts(Map<String, Integer> unreadCounts) {
+		this.unreadCounts = unreadCounts;
+	}
 
-    @Override
-    public String toString() {
-        return "Chat [id=" + id + ", chat_name=" + chat_name + ", isGroup=" + isGroup + "]";
-    }
+	// hashCode, equals, and toString for proper object comparison and debugging
+	@Override
+	public int hashCode() {
+		return Objects.hash(adminIds, chat_image, chat_name, createdById, id, isGroup, members, unreadCounts);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Chat other = (Chat) obj;
+		return Objects.equals(adminIds, other.adminIds) && Objects.equals(chat_image, other.chat_image)
+				&& Objects.equals(chat_name, other.chat_name) && Objects.equals(createdById, other.createdById)
+				&& Objects.equals(id, other.id) && isGroup == other.isGroup && Objects.equals(members, other.members)
+				&& Objects.equals(unreadCounts, other.unreadCounts);
+	}
+
+	@Override
+	public String toString() {
+		return "Chat [id=" + id + ", chat_name=" + chat_name + ", chat_image=" + chat_image + ", isGroup=" + isGroup
+				+ ", createdById=" + createdById + ", unreadCounts=" + unreadCounts + ", adminIds=" + adminIds
+				+ ", members=" + members + "]";
+	}
+
+	
 }

@@ -1,6 +1,10 @@
 import { put } from "../utils/api";
 import { useState } from "react";
 
+import { clearUser } from "../redux/userSlice";
+import { useDispatch } from "react-redux";
+import auth from "../utils/auth";
+
 export default function UpdateDetails({ data, closeModal }) {
     // Destructures the data
     const { type, details } = data;
@@ -16,6 +20,15 @@ export default function UpdateDetails({ data, closeModal }) {
         title: details.username || details.chat_name,
         image: null,
     });
+
+    // Dispatch used to send actions to the Redux store
+    const dispatch = useDispatch();
+
+    // Handles logout
+    const handleLogout = () => {
+        auth.logout(); // Clears token and redirects to login
+        dispatch(clearUser()); // Clears user from Redux store
+    };
 
     // Handles submission for updating details
     const handleSubmit = async (e) => {
@@ -130,6 +143,17 @@ export default function UpdateDetails({ data, closeModal }) {
                 >
                     Update
                 </button>
+
+                 {/* Show logout button only if the type is 'user' */}
+                {type === "user" && (
+                    <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                    >
+                        Log Out
+                    </button>
+                )}
             </div>
         </form>
     );
