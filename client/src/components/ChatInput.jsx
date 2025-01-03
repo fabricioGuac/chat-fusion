@@ -6,6 +6,7 @@ export default function ({ chatId }) {
     const [message, setMessage] = useState("");
     const [file, setFile] = useState(null);
     const [audioBlob, setAudioBlob] = useState(null);
+    const [isRecording, setIsRecording] = useState(false);
     // References for managing the media recorder and audio chunks during recording
     const mediaRecorderRef = useRef(null);
     const audioChunks = useRef([]);
@@ -30,8 +31,23 @@ export default function ({ chatId }) {
             mediaRecorderRef.current.ondataavailable = (e) => {
                 audioChunks.current.push(e.data);
             };
+
+            // Handles the finalization of the recording
+            mediaRecorderRef.current.onstop = () => {
+                // Combines the audio chunks into a single blob
+                const audio = new Blob(audioChunks.current, { type: "audio/webm" });
+                // Resets the audioChunks for future recordings
+                audioChunks.current = [];
+                // Saves the audio blob to the state
+                setAudioBlob(audio);
+                // Sets the is recording flag to false
+                setIsRecording(false);
+            };
+
             // Starts recording
             mediaRecorderRef.current.start();
+            // Sets the is recording flag to true
+            setIsRecording(true);
         } catch (error) {
             console.log("Failed to start recording", error);
         }
@@ -39,17 +55,15 @@ export default function ({ chatId }) {
 
     // Stops the ongoing audio recording
     const stopRecording = async () => {
-        // Stops the MediaRecorder
-        mediaRecorderRef.current.stop();
-        // Handles the finalization of the recording
-        mediaRecorderRef.current.onstop = () => {
-            // Combines the audio chunks into a single blob
-            const audio = new Blob(audioChunks.current, { type: "audio/webm" });
-            // Resets the audioChunks for future recordings
-            audioChunks.current = [];
-            // Saves the audio blob to the state
-            setAudioBlob(audio);
-        };
+        // Checks if the mediaRecorder is still active
+        if (mediaRecorderRef.current) {
+            // Stops the recording process
+            mediaRecorderRef.current.stop();
+            // Retrieves the media tracks (audio tracks in this case) from the MediaRecorder's stream
+            const tracks = mediaRecorderRef.current.stream.getTracks();
+            // Stops each audio track to release the microphone and stop the browser's recording indicator
+            tracks.forEach(track => track.stop());
+        }
     };
 
     // Determines the type of the uploaded file based  on it's MIME type
@@ -141,8 +155,8 @@ export default function ({ chatId }) {
                         <button
                             type="submit"
                             className={`px-4 py-2 rounded-md text-white ${!message && !file && !audioBlob
-                                    ? "bg-gray-300 cursor-not-allowed"
-                                    : "bg-blue-500 hover:bg-blue-600"
+                                ? "bg-gray-300 cursor-not-allowed"
+                                : "bg-blue-500 hover:bg-blue-600"
                                 }`}
                             disabled={!message && !file && !audioBlob}
                         >
@@ -151,13 +165,13 @@ export default function ({ chatId }) {
 
                         <button
                             type="button"
-                            onClick={audioBlob ? stopRecording : startRecording}
-                            className={`px-4 py-2 rounded-md text-white ${audioBlob
-                                    ? "bg-red-500 hover:bg-red-600"
-                                    : "bg-yellow-500 hover:bg-yellow-600"
+                            onClick={isRecording ? stopRecording : startRecording}
+                            className={`px-4 py-2 rounded-md text-white ${isRecording
+                                ? "bg-red-500 hover:bg-red-600"
+                                : "bg-yellow-500 hover:bg-yellow-600"
                                 } focus:outline-none focus:ring-2`}
                         >
-                            {audioBlob ? "Stop" : "Record"}
+                            {isRecording ? "Stop" : "Record"}
                         </button>
                     </div>
                 </div>
