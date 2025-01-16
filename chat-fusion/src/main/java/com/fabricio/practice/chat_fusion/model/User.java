@@ -2,6 +2,7 @@ package com.fabricio.practice.chat_fusion.model;
 
 
 
+import java.time.Instant;
 import java.util.Objects;
 
 import org.springframework.data.annotation.Id;
@@ -21,6 +22,8 @@ public class User {
 	private String email;
 	private String password;
 	private String pfp;
+	private Instant lastConnection;
+
 	
 	// No-args constructor for serialization and deserialization frameworks
 	public User() {
@@ -29,13 +32,14 @@ public class User {
 	
 	
 	// Full-args constructor for initializing all fields of the User object 
-	public User(String id, String username, String email, String password, String pfp) {
+	public User(String id, String username, String email, String password, String pfp, Instant lastConnection) {
 		super();
 		this.id = id;
 		this.username = username;
 		this.email = email;
 		this.password = password;
 		this.pfp = pfp;
+		this.lastConnection = lastConnection;
 	}
 
 
@@ -71,19 +75,27 @@ public class User {
 	public void setPfp(String pfp) {
 		this.pfp = pfp;
 	}
+	public Instant getLastConnection() {
+		return lastConnection;
+	}
+	public void setLastconnection(Instant lastConnection) {
+		this.lastConnection = lastConnection;
+	}
 
 	// To string method
 	@Override
 	public String toString() {
 		return "User [id=" + id + ", username=" + username + ", email=" + email + ", password=" + password + ", pfp="
-				+ pfp + "]";
+				+ pfp + ", lastConnection=" + lastConnection + "]";
 	}
+
 
 	// Hash code method
 	@Override
 	public int hashCode() {
-		return Objects.hash(email, id, password, pfp, username);
+		return Objects.hash(email, id, lastConnection, password, pfp, username);
 	}
+
 
 	// Equals method
 	@Override
@@ -96,12 +108,9 @@ public class User {
 			return false;
 		User other = (User) obj;
 		return Objects.equals(email, other.email) && Objects.equals(id, other.id)
-				&& Objects.equals(password, other.password) && Objects.equals(pfp, other.pfp)
-				&& Objects.equals(username, other.username);
+				&& Objects.equals(lastConnection, other.lastConnection) && Objects.equals(password, other.password)
+				&& Objects.equals(pfp, other.pfp) && Objects.equals(username, other.username);
 	}
-	
-	
-	
-	
+
 	
 }

@@ -1,6 +1,7 @@
 package com.fabricio.practice.chat_fusion.service;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -110,5 +111,31 @@ public class UserServiceImplementation implements UserService {
 	    return userRepository.save(user);
 	}
 
+	// Updates the user's last connection
+	@Override
+	public void updateLastConnection(String email, Instant lastConnection) throws UserException {
+	    // Finds the user by email
+	    User user = userRepository.findByEmail(email);
+
+	    // Ensures the user exists before proceeding
+	    if (user == null) {
+	        throw new UserException("User not found with email: " + email);
+	    }
+
+	    // Updates the user's last connection timestamp
+	    user.setLastconnection(lastConnection);
+
+	    // Saves the updated user to the database
+	    userRepository.save(user);
+	}
+
+	// Fetches the user last connection
+	@Override
+	public Instant getLastConnection(String id) throws UserException {
+		// Finds the user to get their last connection
+		User user = findUserById(id);
+		// Returns the user last connection
+		return user.getLastConnection();
+	}
 
 }

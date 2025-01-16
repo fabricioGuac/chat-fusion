@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { del, put } from "../utils/api";
 
-export default function Message({ message, currentUser }) {
+export default function Message({ message, currentUser, chatId }) {
     // Deconstructs the message
     const { id, content, user, timestamp, type, readBy } = message;
 
@@ -33,7 +33,7 @@ export default function Message({ message, currentUser }) {
     // Handles deleting the message
     const handleDelete = async () => {
         try {
-            await del(`/api/messages/delete/${id}`);
+            await del(`/api/messages/delete/${id}/${chatId}`);
             setErrorMessage("");
         } catch (error) {
             console.log("Error deleting message", error.message || error);
@@ -95,7 +95,8 @@ export default function Message({ message, currentUser }) {
 
                 {/* Displays message timestamp */}
                 <div className="text-sm mt-2 text-right">
-                    {new Date(timestamp).toLocaleDateString()}
+                    {new Date(timestamp).toLocaleString('en-US', { year: '2-digit', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true }).replace(',', '')}
+                    {/* {new Date(timestamp).toLocaleDateString()} */}
                 </div>
 
 

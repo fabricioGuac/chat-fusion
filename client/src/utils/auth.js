@@ -34,18 +34,30 @@ class AuthService {
         return this.token;
     }
 
+    // Fucntion to get the email from the JWT regardless of the expiration
+    getEmail() {
+        const token = this.getToken(); // Retrieve token from memory or localStorage
+        try {
+            const decoded = jwtDecode(token); // Decodes the JWT
+            return decoded.email; // Returns the email
+        } catch (error) {
+            console.error("Error decoding token:", err);
+            return null;
+        }
+    }
+
     // Function to log a user in
     login(idToken) {
         this.token = idToken;
-        localStorage.setItem("id_token", idToken);
+        localStorage.setItem("id_token", idToken); // Sets to localStorage
         window.location.assign("/"); // Redirect to dashboard
     }
 
     // Function to log a user out
     logout() {
         this.token = null; // Clears from memory
+        window.location.assign("/login"); // Redirect to login
         localStorage.removeItem("id_token"); // Clears from localStorage
-        window.location.assign("/login"); 
     }
 }
 

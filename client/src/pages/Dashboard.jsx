@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useNavigate } from "react-router-dom";
 import auth from "../utils/auth";
 import SideBar from "../components/SideBar";
@@ -7,30 +7,90 @@ import Chat from "../components/Chat";
 import CreateGroup from "../components/CreateGroup";
 import CreateSingleChat from "../components/CreateSingleChat";
 
+import { Client } from "@stomp/stompjs";
+import SockJS from "sockjs-client/dist/sockjs";
+
 
 export default function Dashboard() {
     // State to manage the selected view
     const [selectedView, setSelectedView] = useState({ type: null, data: null });
     const navigate = useNavigate();
 
-    // Redirects the user to the login page if not logged in
+    // WebSocket client ref
+    const stompClient = useRef(null);
+
+    const connectWebSocket = () => {
+        stompClient.current = new Client({
+            // Uses SockJS as te websocket factory
+            webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
+            // Sets the reconnection attemptafter 5 seconds
+            reconnectDelay: 5000,
+            // Debug log
+            debug: (str) => console.log(str),
+        });
+
+        // Emmits the event to notify that the user is online
+        stompClient.current.onConnect = () => {
+            console.log("Connected to websocket");
+
+            console.log(auth.getEmail())
+            stompClient.current.publish({
+                destination:"/app/user.online.status",
+                body: JSON.stringify({email: auth.getEmail(), online: true}),
+            });
+        }
+
+        // Handles stomp errors
+        stompClient.current.onStompError = (frame) => {
+            console.error("Broker reported error: " + frame.headers["message"]);
+            console.error("Additinal details: " + frame.body);
+        }
+
+        // Initiates the connetion
+        stompClient.current.activate();
+    }
+
+    const disconnectWebSocket = () => {
+        if (stompClient.current) {
+            stompClient.current.publish({
+                destination: "/app/user.online.status",
+                body: JSON.stringify({email: auth.getEmail(), online: false}),
+            });
+            stompClient.current.deactivate();
+        }
+    };
+
+    // Redirects the user to the login page if not logged in and connects to the websocket 
     useEffect(() => {
         if (!auth.loggedIn()) {
             navigate('/login');
+            return;
+        }
+
+        // Initiates the websocket connection
+        connectWebSocket();
+
+        // Adds an event listener to ensure disconnection on window close
+        window.addEventListener("beforeunload", disconnectWebSocket);
+
+        // Cleanup on unmount
+        return () => {
+            // disconnectWebSocket();
+            console.log("CLEANUP");
+            window.removeEventListener("beforeunload",  disconnectWebSocket);
         }
     }, []);
 
 
-    //TODO: Refactor to use redux or react context API to avoid prop drilling
     // Dynamically render the content based on `selectedView`
     const renderContent = () => {
         switch (selectedView.type) {
             case "chat":
-                return <Chat chat={selectedView.data.chat}  setSelectedView={setSelectedView} /> ;
+                return <Chat chat={selectedView.data.chat} setSelectedView={setSelectedView} />;
             case "single-create":
-                return <CreateSingleChat setSelectedView={setSelectedView}  /> ;
+                return <CreateSingleChat setSelectedView={setSelectedView} />;
             case "group-create":
-                return <CreateGroup setSelectedView={setSelectedView} /> ;
+                return <CreateGroup setSelectedView={setSelectedView} />;
             case "update-details":
                 return <UpdateDetails data={selectedView.data} />;
             default:

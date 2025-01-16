@@ -1,6 +1,7 @@
 package com.fabricio.practice.chat_fusion.service;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 
 import com.fabricio.practice.chat_fusion.exception.UserException;
@@ -25,5 +26,11 @@ public interface UserService {
 	
 	// Updates an user information based on the provided ID and update request
 	public User updateUser(String id, UpdateRequest req)  throws UserException , S3Exception, AwsServiceException, SdkClientException, IOException;
+
+	// Updates the user's last connection
+	public void updateLastConnection(String email, Instant lastConnection) throws UserException;
+
+	// Fetches the user last connection
+	Instant getLastConnection(String id) throws UserException;
 	
 }

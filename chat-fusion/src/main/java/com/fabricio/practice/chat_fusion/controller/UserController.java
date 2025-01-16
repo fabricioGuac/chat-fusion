@@ -1,6 +1,7 @@
 package com.fabricio.practice.chat_fusion.controller;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
@@ -55,6 +56,14 @@ public class UserController {
 		return new ResponseEntity<List<User>>(userList, HttpStatus.OK);
 	}
 	
+	// Route to get an user's last connection
+	@GetMapping("/lastConnection/{id}")
+	public ResponseEntity<Instant> getUserLastConnectionHandler(@PathVariable String id) throws UserException {
+		// Retrieves the user's last connection
+		Instant lastConnection = userService.getLastConnection(id);
+		return new ResponseEntity<Instant>(lastConnection, HttpStatus.OK);
+	}
+	
 	// Route to update the user's profile information
 	@PutMapping(value = "/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ApiResponse> updateUserHandler(@ModelAttribute UpdateRequest req, @RequestHeader("Authorization") String jwt) throws UserException, S3Exception, AwsServiceException, SdkClientException, IOException {
@@ -66,6 +75,5 @@ public class UserController {
 		ApiResponse res = new ApiResponse("User updated successfully", true);
 		return new ResponseEntity<ApiResponse>(res, HttpStatus.OK);
 	}
-	
 	
 }
