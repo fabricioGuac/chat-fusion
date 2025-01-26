@@ -1,8 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { get } from "../utils/api";
 
 import { useDispatch } from "react-redux";
 import { setUser } from "../redux/userSlice";
+
+import { Client } from "@stomp/stompjs";
+import SockJS from "sockjs-client/dist/sockjs";
 
 export default function SideBar({ onSelectView }) {
     // Dispatch used to send actions to the Redux store
@@ -12,6 +15,75 @@ export default function SideBar({ onSelectView }) {
     const [currentUser, setCurrentUser] = useState(null);
     const [chats, setChats] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    // WebSocket client ref
+    const stompClient = useRef(null);
+
+
+
+
+
+    // Function to connect to the websocket
+    const connectWebSocket = () => {
+        stompClient.current = new Client({
+            // Uses SockJS as te websocket factory
+            webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
+            // Sets the reconnection attemptafter 5 seconds
+            reconnectDelay: 5000,
+            // Debug log
+            debug: (str) => console.log(str),
+        });
+
+        // Sets up subscriptions on successful connection
+        stompClient.current.onConnect = () => {
+            console.log("Connected NOTIFICATIONS WS");
+
+            // Subscribes to the chat topic
+            stompClient.current.subscribe(`/chat/notifications/${currentUser.id}`, (messageOutput) => {
+                // Parses the message event
+                const chatId = messageOutput.body;
+                // Increates the unread count for the chat that received the new message
+                setChats((prevChats) =>
+                    prevChats.map((chat) =>
+                        chat.id === chatId
+                            ? {
+                                ...chat,
+                                unreadCounts: {
+                                    ...chat.unreadCounts,
+                                    [currentUser.id]: (chat.unreadCounts[currentUser.id] || 0) + 1,
+                                },
+                            }
+                            : chat
+                    )
+                );
+            });
+
+        }
+
+        // Handles stomp errors
+        stompClient.current.onStompError = (frame) => {
+            console.error("Broker reported error: " + frame.headers["message"]);
+            console.error("Additinal details: " + frame.body);
+        }
+
+        // Initiates the connetion
+        stompClient.current.activate();
+    }
+
+    // Fucntion to reset the unread count to zero
+    const resetCount = (chatId) => {
+        setChats((prevChats) =>
+            prevChats.map((chat) => chat.id === chatId ?
+                { ...chat, unreadCounts: { ...chat.unreadCounts, [currentUser.id]: 0, } } :
+                chat
+            ))
+    };
+
+
+
+
+
+
 
 
     // UseEffect to fetch user profile and chats on component mount
@@ -42,6 +114,16 @@ export default function SideBar({ onSelectView }) {
 
         // Calls the fetch function
         fetchSidebarData();
+
+        // Connects to the websocket
+        connectWebSocket();
+
+        return () => {
+            if (stompClient.current) {
+                // Disconnects if connected and stops auto reconnect loop
+                stompClient.current.deactivate();
+            }
+        }
     }, []);
 
     if (loading) {
@@ -68,7 +150,7 @@ export default function SideBar({ onSelectView }) {
 
             <div className="p-4">
                 <button
-                    onClick={() => 
+                    onClick={() =>
                         onSelectView({ type: "single-create", data: { currentUser } })
                     }
                     className="flex items-center justify-center bg-gray-200 p-2 rounded w-full hover:bg-gray-300"
@@ -99,46 +181,50 @@ export default function SideBar({ onSelectView }) {
                     </div>
                 ) : (
                     <ul>
-                    {chats.map((chat) => {
-                        // Determines if this is a self-chat
-                        const isSelfChat = !chat.group && chat.members.length === 1;
-                
-                        // Determines the image source
-                        const imageSrc = isSelfChat
-                            ? currentUser.pfp || "/logo192.png"
-                            : chat.group
-                            ? chat.chat_image || "/logo192.png"
-                            : chat.members[0].id === currentUser.id
-                            ? chat.members[1].pfp || "/logo192.png"
-                            : chat.members[0].pfp || "/logo192.png";
-                
-                        // Determines the name to display
-                        const displayName = isSelfChat
-                            ? "You"
-                            : chat.group
-                            ? chat.chat_name
-                            : chat.members[0].id === currentUser.id
-                            ? chat.members[1].username
-                            : chat.members[0].username;
-                
-                        return (
-                            <li
-                                key={chat.id}
-                                className="p-2 flex items-center gap-4 hover:bg-gray-200 cursor-pointer"
-                                onClick={() => onSelectView({ type: "chat", data: {chat} })}
-                            >
-                                <img
-                                    src={imageSrc}
-                                    alt="chat image"
-                                    className="w-10 h-10 rounded-full object-cover"
-                                />
-                                <span>{displayName}</span>
-                                {/* Unread message counter for the logged in user */}
-                                {(chat.unreadCounts[currentUser.id] || 0) > 0  && <span className="bg-red-200 rounded-full ml-8 px-2">{chat.unreadCounts[currentUser.id]}</span>}
-                            </li>
-                        );
-                    })}
-                </ul>
+                        {chats.map((chat) => {
+                            // Determines if this is a self-chat
+                            const isSelfChat = !chat.group && chat.members.length === 1;
+
+                            // Determines the image source
+                            const imageSrc = isSelfChat
+                                ? currentUser.pfp || "/logo192.png"
+                                : chat.group
+                                    ? chat.chat_image || "/logo192.png"
+                                    : chat.members[0].id === currentUser.id
+                                        ? chat.members[1].pfp || "/logo192.png"
+                                        : chat.members[0].pfp || "/logo192.png";
+
+                            // Determines the name to display
+                            const displayName = isSelfChat
+                                ? "You"
+                                : chat.group
+                                    ? chat.chat_name
+                                    : chat.members[0].id === currentUser.id
+                                        ? chat.members[1].username
+                                        : chat.members[0].username;
+
+                            return (
+                                <li
+                                    key={chat.id}
+                                    className="p-2 flex items-center gap-4 hover:bg-gray-200 cursor-pointer"
+                                    onClick={() => {
+                                        onSelectView({ type: "chat", data: { chat } });
+                                        resetCount(chat.id);
+                                    }
+                                    }
+                                >
+                                    <img
+                                        src={imageSrc}
+                                        alt="chat image"
+                                        className="w-10 h-10 rounded-full object-cover"
+                                    />
+                                    <span>{displayName}</span>
+                                    {/* Unread message counter for the logged in user */}
+                                    {(chat.unreadCounts[currentUser.id] || 0) > 0 && <span className="bg-red-200 rounded-full ml-8 px-2">{chat.unreadCounts[currentUser.id]}</span>}
+                                </li>
+                            );
+                        })}
+                    </ul>
                 )}
             </div>
         </aside>

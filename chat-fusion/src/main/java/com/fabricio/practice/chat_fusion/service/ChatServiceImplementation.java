@@ -319,5 +319,26 @@ public class ChatServiceImplementation implements ChatService {
 
 	        // Throws an exception if the user is not a member of the chat
 	        throw new ChatException("You do not have permission to delete this chat");
-	    }	
+	    }
+
+
+	// Adds a user to the connected users of a chat
+	@Override
+	public void addConnectedUser(String chatId, String userId) throws ChatException {
+		Chat chat = findChatById(chatId);
+		chat.getConnectedUserIds().add(userId);
+		chatRepository.save(chat);
+		return;
+		
+	}
+
+	// Removes a user to the connected users of a chat
+	@Override
+	public void removeConnectedUser(String chatId, String userId) throws ChatException {
+		Chat chat = findChatById(chatId);
+		chat.getConnectedUserIds().remove(userId);
+		chatRepository.save(chat);
+		return;
+		
+	}	
 }

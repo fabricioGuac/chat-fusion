@@ -5,7 +5,7 @@ import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client/dist/sockjs";
 
 
-export default function ChatBody({ chat, currentUser }) {
+export default function ChatBody({ chat, currentUser, lastConnectedUser }) {
     // State variables for managing messages, and loading state
     const [messages, setMessages] = useState([]);
 
@@ -135,6 +135,20 @@ export default function ChatBody({ chat, currentUser }) {
         // Adds a scroll event listener to the chat body element to detect when the user scrolls to the top
         return () => chatBody.removeEventListener("scroll", handleScroll);
     }, [loading]); // Re-attaches event listener when `loading` changes
+
+    // UseEffect to mark the unread messsages as read
+    useEffect(() => {
+        // Early return if there is no lastConnected user
+        if(!lastConnectedUser) {
+            return;
+        }
+        // Iterates over the message lista and adds the lastConnectedUser if not included in the readBy field
+        setMessages((prevMessages) => 
+            prevMessages.map((message) => 
+                message.user.id !== lastConnectedUser.id && !message.readBy.some(user => user.id === lastConnectedUser.id) ? {...message, readBy: [...message.readBy, lastConnectedUser]} : message 
+            )
+        )
+    }, [lastConnectedUser]); // Uses the lastConnectedUser as a dependency array so that it triggers on each connection 
 
 
     return (

@@ -44,4 +44,9 @@ public interface ChatService {
 	// Deletes a chat
 	public void deleteChat(User reqUser, String chatId) throws ChatException,UserException;
 	
+	// Adds a user to the connected users of a chat
+	public void addConnectedUser(String chatId, String userId) throws ChatException;
+	
+	// Removes a user to the connected users of a chat
+	public void removeConnectedUser(String chatId, String userId) throws ChatException;
 }

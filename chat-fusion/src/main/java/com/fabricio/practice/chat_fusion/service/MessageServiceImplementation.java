@@ -45,14 +45,17 @@ public class MessageServiceImplementation implements MessageService {
 	private AwsService awsS3Client;
 	// MongoTemplate for performing custom MongoDB queries and updates 
 	private MongoTemplate mongoTemplate;
+	// Websocket service for real time notifications
+	private WebsocketService websocketService;
 	
 	// Constructor for dependency injection of ChatService, ChatRepository, MongoTemplate, MessageRepository and AwsService
-	public MessageServiceImplementation(ChatService chatService, ChatRepository chatRepository, MessageRepository messageRepository, AwsService awsS3Client, MongoTemplate mongoTemplate) {
+	public MessageServiceImplementation(ChatService chatService, ChatRepository chatRepository, MessageRepository messageRepository, AwsService awsS3Client, MongoTemplate mongoTemplate, WebsocketService websocketService) {
 		this.chatService = chatService;
 		this.chatRepository = chatRepository;
 		this.messageRepository = messageRepository;
 		this.awsS3Client = awsS3Client;
 		this.mongoTemplate = mongoTemplate;
+		this.websocketService = websocketService;
 	}
 	
 	// Creates a message in the specified chat
@@ -87,13 +90,24 @@ public class MessageServiceImplementation implements MessageService {
 		mssg.setChatId(chat.getId());
 		mssg.setTimestamp(LocalDateTime.now());
 		
-		// Not ideal if you can think of a better approach please let me know
-		// Updates unread counts for all members except the sender
-	    chat.getUnreadCounts().forEach((userId, count) -> {
-	        if (!userId.equals(reqUser.getId())) {
-	            chat.getUnreadCounts().put(userId, count + 1);
-	        }
-	    });
+		// Iterates over the members to notify those that are not online of the new message
+		for (User member : chat.getMembers()) {
+			String userId = member.getId();
+			// Skips the author of the message
+			if(userId.equals(reqUser.getId())) {
+				continue;
+			}
+			// Marks the message as read by those users that are connected at the moment the message is created
+			if(chat.getConnectedUserIds().contains(userId )) {
+				mssg.getReadBy().add(member);
+			} else {
+				// Increases the unread count or those that are not connected
+				chat.getUnreadCounts().put(userId, chat.getUnreadCounts().getOrDefault(userId, 0) + 1);
+				// Websocket notification to increase the user unread count real time for a chat
+				websocketService.messageNotificationEvent(chat.getId(), userId);
+			}
+		}
+	    
 	    // Saves the changes to the chat
 	    chatRepository.save(chat);
 	    

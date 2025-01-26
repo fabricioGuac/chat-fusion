@@ -23,6 +23,7 @@ public class Chat {
     private String createdById;
     private Map<String, Integer> unreadCounts = new HashMap<>();
     private Set<String> adminIds = new HashSet<>();
+    private Set<String> connectedUserIds = new HashSet<>();
     // Use @DBRef to reference User entities for members
     @DBRef
     private Set<User> members = new HashSet<>();
@@ -33,7 +34,7 @@ public class Chat {
 
     // Full-args constructor for initializing all fields of the Chat object
     public Chat(String id, String chat_name, String chat_image, boolean isGroup, String createdById,
-			Map<String, Integer> unreadCounts, Set<String> adminIds, Set<User> members) {
+			Map<String, Integer> unreadCounts, Set<String> adminIds, Set<String> connectedUserIds, Set<User> members) {
 		super();
 		this.id = id;
 		this.chat_name = chat_name;
@@ -42,11 +43,12 @@ public class Chat {
 		this.createdById = createdById;
 		this.unreadCounts = unreadCounts;
 		this.adminIds = adminIds;
+		this.connectedUserIds = connectedUserIds;
 		this.members = members;
 	}
+    
 
-
-    // Getters and Setters
+	// Getters and Setters
     public String getId() {
         return id;
     }
@@ -102,9 +104,7 @@ public class Chat {
 
     public void setMembers(Set<User> members) {
         this.members = members;
-    }
-    
-    
+    }   
 
     public Map<String, Integer> getUnreadCounts() {
 		return unreadCounts;
@@ -112,6 +112,14 @@ public class Chat {
 
 	public void setUnreadCounts(Map<String, Integer> unreadCounts) {
 		this.unreadCounts = unreadCounts;
+	}
+
+	public Set<String> getConnectedUserIds() {
+		return connectedUserIds;
+	}
+
+	public void setConnectedUserIds(Set<String> connectedUserIds) {
+		this.connectedUserIds = connectedUserIds;
 	}
 
 	// hashCode, equals, and toString for proper object comparison and debugging

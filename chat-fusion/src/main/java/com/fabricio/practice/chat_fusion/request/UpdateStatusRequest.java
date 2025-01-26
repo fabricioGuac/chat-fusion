@@ -6,6 +6,8 @@ public class UpdateStatusRequest {
 	private String email;
 	// Boolean to track if the user is online or not
 	private boolean online;
+	// ID of the user to add to the chat connectedUsers field
+	private String userId;
 	
 	// Default no-arguments constructor
 	public UpdateStatusRequest() {
@@ -13,10 +15,11 @@ public class UpdateStatusRequest {
 	}
 	
 	// Constructor to create a UpdateStatusRequest with the specified fields
-	public UpdateStatusRequest(String email, boolean online) {
+	public UpdateStatusRequest(String email, boolean online, String userId) {
 		super();
 		this.email = email;
 		this.online = online;
+		this.userId = userId;
 	}
 	
 	// Getters and setters for the fields
@@ -33,6 +36,13 @@ public class UpdateStatusRequest {
 
 	public void setOnline(boolean online) {
 		this.online = online;
+	}
+	public String getUserId() {
+	    return userId;
+	}
+
+	public void setUserId(String userId) {
+	    this.userId = userId;
 	}
 	
 }

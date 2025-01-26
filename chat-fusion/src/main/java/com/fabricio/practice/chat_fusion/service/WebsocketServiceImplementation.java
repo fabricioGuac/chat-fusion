@@ -29,5 +29,12 @@ public class WebsocketServiceImplementation implements WebsocketService{
 	     // Emits WebSocket message event
 	     simpMessagingTemplate.convertAndSend("/chat/" + chatId, event);
 	}
+	
+	// Method to emit the new message notification 
+	@Override
+	public void messageNotificationEvent(String chatId, String userId) {
+		 // Emits WebSocket message event
+		 simpMessagingTemplate.convertAndSend("/chat/notifications/" + userId, chatId);
+		}
 
 }
