@@ -75,8 +75,8 @@ export default function Dashboard() {
 
         // Cleanup on unmount
         return () => {
-            // disconnectWebSocket();
             console.log("CLEANUP");
+            disconnectWebSocket();
             window.removeEventListener("beforeunload",  disconnectWebSocket);
         }
     }, []);
@@ -86,7 +86,7 @@ export default function Dashboard() {
     const renderContent = () => {
         switch (selectedView.type) {
             case "chat":
-                return <Chat chat={selectedView.data.chat} setSelectedView={setSelectedView} />;
+                return <Chat chatId={selectedView.data.chatId} setSelectedView={setSelectedView} />;
             case "single-create":
                 return <CreateSingleChat setSelectedView={setSelectedView} />;
             case "group-create":

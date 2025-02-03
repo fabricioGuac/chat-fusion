@@ -29,8 +29,6 @@ export default function ChatHeader({ chat, currentUser }) {
     // Toggles the dropdown menu
     const toggleDropDown = () => setDropDownOpen(!dropDownOpen);
 
-    // Determines if the chat is a self chat
-    // const isSelfChat = !chat.group && chat.members.length === 1;
 
     // Placeholder for calls
     const handleCall = () => {
@@ -176,12 +174,12 @@ export default function ChatHeader({ chat, currentUser }) {
                                     >
                                         Update Details
                                     </button>
-                                    <button
+                                    { chat.adminIds.includes(currentUser.id) && (<button
                                         onClick={() => setModal("addUser")}
                                         className="block px-4 py-2 text-left text-gray-700 hover:bg-gray-100 w-full"
                                     >
                                         Add User to Group
-                                    </button>
+                                    </button>)}
                                     <button
                                         onClick={() => setModal("viewMembers")}
                                         className="block px-4 py-2 text-left text-gray-700 hover:bg-gray-100 w-full"
@@ -190,12 +188,12 @@ export default function ChatHeader({ chat, currentUser }) {
                                     </button>
                                 </>
                             )}
-                            <button
+                            { (chat.adminIds.includes(currentUser.id) || !chat.group) && (<button
                                 onClick={() => setModal("deleteChat")}
                                 className="block px-4 py-2 text-left text-red-600 hover:bg-red-100 w-full"
                             >
                                 Delete Chat
-                            </button>
+                            </button>)}
                         </div>
                     )}
                 </div>

@@ -8,7 +8,7 @@ import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client/dist/sockjs";
 
 // Chat component combining the header, body and input sections
-export default function Chat({ chat }) {
+export default function Chat({ chatId, setSelectedView }) {
 
     // WebSocket client ref
         const stompClient = useRef(null);
@@ -16,12 +16,10 @@ export default function Chat({ chat }) {
     const [lastConnectedUser, setLastconnectedUser] = useState(null);
 
 
-    // Retrieves the current user data from the Redux store
+
+    // Retrieves the current user data and current chat data from the Redux store
     const currentUser = useSelector((state) => state.user.user);
-    // Renders a loading indicator if the user data is not yet available
-    if (!currentUser) {
-        return <div>Loading...</div>;
-    }
+    const chat = useSelector((state) => state.chats.chats.find((chat) => chat.id === chatId));
 
     // Function to connect to the websocket
     const connectWebSocket = () => {
@@ -48,13 +46,9 @@ export default function Chat({ chat }) {
             stompClient.current.subscribe(`/chat/${chat.id}/connected`, (messageOutput) => {
                 // Parses the message event
                 const event = JSON.parse(messageOutput.body);
-                
                 if(event.online) { 
-                    // const user = chat.members.find((member) => member.id === event.userId);
-                    // console.log(user);
                     // Set the lastConnectedUser to the user with the id from the event
                     setLastconnectedUser(chat.members.find((member) => member.id === event.userId));
-                    // setLastconnectedUser(user);
                 } else {
                     setLastconnectedUser(null);
                 }
@@ -74,6 +68,7 @@ export default function Chat({ chat }) {
     // Fucntion to disconnect from the websocket
     const disconnectWebSocket = () => {
         if (stompClient.current) {
+            stompClient.current.unsubscribe(`/chat/${chat.id}/connected`);
             stompClient.current.publish({
                 destination: `/app/connected/${chat.id}`,
                 body: JSON.stringify({ userId: currentUser.id, online: false }),
@@ -84,6 +79,12 @@ export default function Chat({ chat }) {
 
     // UseEffect to handle connection and disconection from the websocket on chat change
     useEffect( () => {
+        
+        // If the chat is not found go back to basic view
+        if (!chat) {
+            setSelectedView({ type: null, data: null });
+            return;
+        }
 
         // Connects to the websocket
         connectWebSocket();
@@ -93,7 +94,12 @@ export default function Chat({ chat }) {
             disconnectWebSocket();
         };
 
-    }, [chat.id])
+    }, [chatId, chat])
+
+        // Renders a loading indicator if the user data is not yet available
+        if (!currentUser || !chat) {
+            return <div>Loading...</div>;
+        }
 
 
     return (

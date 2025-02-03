@@ -104,9 +104,12 @@ public class MessageServiceImplementation implements MessageService {
 				// Increases the unread count or those that are not connected
 				chat.getUnreadCounts().put(userId, chat.getUnreadCounts().getOrDefault(userId, 0) + 1);
 				// Websocket notification to increase the user unread count real time for a chat
-				websocketService.messageNotificationEvent(chat.getId(), userId);
+				websocketService.chatNotificationEvent(chat.getId(),userId, "updateUnreadCounts",chat.getId() );
 			}
 		}
+		
+		// Emits WebSocket new message even
+		websocketService.messageEvent(mssg.getChatId(), "send", mssg);
 	    
 	    // Saves the changes to the chat
 	    chatRepository.save(chat);
@@ -188,6 +191,10 @@ public class MessageServiceImplementation implements MessageService {
 	    		}
 	    		// Updates the message content and saves it
 	            mssg.setContent(req.getNewContent());
+	            
+	    		// Emits WebSocket event for editing the message
+	    		websocketService.messageEvent(mssg.getChatId(), "edit", mssg);
+	            
 	            return messageRepository.save(mssg);
 	        }
 	        // If the user is not the author of the message throws an exception
@@ -201,7 +208,9 @@ public class MessageServiceImplementation implements MessageService {
 		Message mssg = findMessageById(messageId);
 		// Fetches the chat by ID
 		Chat chat = chatService.findChatById(mssg.getChatId());
-
+		
+		// Emits WebSocket event to delete the message
+		websocketService.messageEvent(mssg.getChatId(), "delete", messageId);
 		
 		// Booleans to check if the user is authorized to delete the message
 		boolean isAuthor = mssg.getUser().getId().equals(reqUserId);

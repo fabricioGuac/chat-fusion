@@ -42,14 +42,11 @@ public class MessageController {
 	private MessageService messageService;
 	// Service to handle user-related business logic
 	private UserService userService; 
-	// Service to handle WebSocket related logic
-	private WebsocketService websocketService;
 	
 	// Constructor to initialize the dependencies through dependency injection
 	public MessageController(MessageService messageService, UserService userService, WebsocketService websocketService ) {
 		this.messageService = messageService;
 		this.userService = userService;
-		this.websocketService = websocketService;
 	}
 	
 	// Route to create a new message
@@ -59,9 +56,7 @@ public class MessageController {
 		User reqUser = userService.findUserProfile(jwt);
 		// Creates the message
 		Message mssg = messageService.sendMessage(req, reqUser);
-		// Emits WebSocket event
-		websocketService.messageEvent(mssg.getChatId(), "send", mssg);
-		
+
 		return new ResponseEntity<Message>(mssg, HttpStatus.OK);
 	}
 
@@ -92,8 +87,6 @@ public class MessageController {
 		User reqUser = userService.findUserProfile(jwt);
 		// Calls the service to update the message content
 		Message updatedMssg = messageService.editMessage(req, reqUser.getId());
-		// Emits WebSocket event
-		websocketService.messageEvent(updatedMssg.getChatId(), "edit", updatedMssg);
 		
 		return new ResponseEntity<Message>(updatedMssg, HttpStatus.OK);
 	}
@@ -103,9 +96,6 @@ public class MessageController {
 	public ResponseEntity <ApiResponse> deleteMessageHandler(@PathVariable String messageId, @PathVariable String chatId, @RequestHeader("Authorization") String jwt) throws  MessageException, UserException, ChatException {
 		// Retrieves the user's profile based on the JWT token
 		User reqUser = userService.findUserProfile(jwt);
-		
-		// Emits WebSocket event
-		websocketService.messageEvent(chatId, "delete", messageId);
 		
 		// Calls the service to delete the message if the user is authorized
 		messageService.deleteMessage(messageId, reqUser.getId());

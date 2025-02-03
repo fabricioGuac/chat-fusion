@@ -62,12 +62,12 @@ export default function MembersModal({ chat, currentUserId, closeModal }) {
                                 {isAdmin && member.id !== currentUserId && (
                                     <>
                                     {/* Button to make the member an admin */}
-                                        <button
+                                        { !chat.adminIds.includes(member.id) && (<button
                                             onClick={() => makeAdmin(member.id)}
                                             className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
                                         >
                                             Make Admin
-                                        </button>
+                                        </button>)}
                                         
                                         {/* Button to remove a  membe from the group */}
                                         <button

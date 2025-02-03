@@ -3,7 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 // Slice for managing user-related state in redux
 const userSlice = createSlice({
     name:'user', // Name of the slice
-    initialState: {user: null}, // Initila state (no user logged in)
+    initialState: {user: null}, // Initial state (no user logged in)
     reducers: {
         // Sets the user data in the state
         setUser: (state, action) => {

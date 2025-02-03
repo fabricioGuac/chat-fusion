@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { get } from "../utils/api";
 
-import { useDispatch } from "react-redux";
+import { useSelector,useDispatch } from "react-redux";
 import { setUser } from "../redux/userSlice";
+import { addAdmin, addChat, addMember, removeMember,removeChat , setChats, updateChat, updateUnreadCounts, } from "../redux/chatsSlice";
 
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client/dist/sockjs";
@@ -11,17 +12,12 @@ export default function SideBar({ onSelectView }) {
     // Dispatch used to send actions to the Redux store
     const dispatch = useDispatch();
 
-    // State  variables to handle the data and it's loading state
-    const [currentUser, setCurrentUser] = useState(null);
-    const [chats, setChats] = useState([]);
-    const [loading, setLoading] = useState(true);
+    // Gets chants and currentUser from Redux store
+    const chats = useSelector((state) => state.chats.chats);
+    const currentUser = useSelector((state) => state.user.user);
 
     // WebSocket client ref
     const stompClient = useRef(null);
-
-
-
-
 
     // Function to connect to the websocket
     const connectWebSocket = () => {
@@ -41,23 +37,42 @@ export default function SideBar({ onSelectView }) {
             // Subscribes to the chat topic
             stompClient.current.subscribe(`/chat/notifications/${currentUser.id}`, (messageOutput) => {
                 // Parses the message event
-                const chatId = messageOutput.body;
-                // Increates the unread count for the chat that received the new message
-                setChats((prevChats) =>
-                    prevChats.map((chat) =>
-                        chat.id === chatId
-                            ? {
-                                ...chat,
-                                unreadCounts: {
-                                    ...chat.unreadCounts,
-                                    [currentUser.id]: (chat.unreadCounts[currentUser.id] || 0) + 1,
-                                },
-                            }
-                            : chat
-                    )
-                );
-            });
+                const eventData = JSON.parse(messageOutput.body);
+                
+                switch(eventData.type) {
 
+                    case "updateUnreadCounts":
+                        dispatch(updateUnreadCounts({chatId: eventData.chatId, userId: currentUser.id, increase: true}));
+                        break;
+
+                    case "addChat": 
+                        dispatch(addChat(eventData.payload));
+                        break;
+                    
+                    case "updateChat": 
+                        dispatch(updateChat(eventData.payload));
+                        break;
+                    
+                    case "addMember": 
+                        dispatch(addMember({newMember: eventData.payload, chatId: eventData.chatId}));
+                        break;
+                    
+                    case "addAdmin":
+                        dispatch(addAdmin({newAdminId: currentUser.id, chatId: eventData.chatId}));
+                        break;
+                    
+                    case "removeMember": 
+                        dispatch(removeMember({chatId: eventData.chatId, removedUserId: eventData.payload}));
+                        break;
+
+                    case "removeChat":
+                        dispatch(removeChat(eventData.chatId));
+                        break;
+                    
+                    default: 
+                    console.log("Unknown chate event type: ", eventData.type);
+                }
+            });
         }
 
         // Handles stomp errors
@@ -69,22 +84,6 @@ export default function SideBar({ onSelectView }) {
         // Initiates the connetion
         stompClient.current.activate();
     }
-
-    // Fucntion to reset the unread count to zero
-    const resetCount = (chatId) => {
-        setChats((prevChats) =>
-            prevChats.map((chat) => chat.id === chatId ?
-                { ...chat, unreadCounts: { ...chat.unreadCounts, [currentUser.id]: 0, } } :
-                chat
-            ))
-    };
-
-
-
-
-
-
-
 
     // UseEffect to fetch user profile and chats on component mount
     useEffect(() => {
@@ -99,34 +98,45 @@ export default function SideBar({ onSelectView }) {
 
                 // Stores the fetched user data in the Redux store
                 dispatch(setUser(userData));
-                // Updates the state variables with the fetched data 
-                setCurrentUser(userData);
-                setChats(chatsData);
+                dispatch(setChats(chatsData));
 
             } catch (error) {
                 console.log(error.message);
                 console.log("Error fetching data" + error);
-            } finally {
-                // Sets the loading to false
-                setLoading(false);
-            }
+            } 
         }
 
         // Calls the fetch function
         fetchSidebarData();
 
-        // Connects to the websocket
-        connectWebSocket();
+        // // Connects to the websocket
+        // connectWebSocket();
 
-        return () => {
-            if (stompClient.current) {
-                // Disconnects if connected and stops auto reconnect loop
-                stompClient.current.deactivate();
-            }
-        }
+        // return () => {
+        //     if (stompClient.current) {
+        //         // Disconnects if connected and stops auto reconnect loop
+        //         stompClient.current.deactivate();
+        //     }
+        // }
     }, []);
 
-    if (loading) {
+
+    useEffect(() => {
+        if (!currentUser) return;
+        
+                // Connects to the websocket
+                connectWebSocket();
+
+                return () => {
+                    if (stompClient.current) {
+                        // Disconnects if connected and stops auto reconnect loop
+                        stompClient.current.deactivate();
+                    }
+                }
+    }, [currentUser]);
+
+
+    if (!currentUser) {
         return <div className="w-64 bg-gray-100 text-center h-screen p-4">Loading...</div>;
     }
 
@@ -208,8 +218,8 @@ export default function SideBar({ onSelectView }) {
                                     key={chat.id}
                                     className="p-2 flex items-center gap-4 hover:bg-gray-200 cursor-pointer"
                                     onClick={() => {
-                                        onSelectView({ type: "chat", data: { chat } });
-                                        resetCount(chat.id);
+                                        onSelectView({ type: "chat", data: { chatId:chat.id } });
+                                        dispatch(updateUnreadCounts({chatId: chat.id, userId: currentUser.id, increase: false}));
                                     }
                                     }
                                 >
