@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState} from "react"
 import { useNavigate } from "react-router-dom";
 import auth from "../utils/auth";
 import SideBar from "../components/SideBar";
@@ -7,8 +7,7 @@ import Chat from "../components/Chat";
 import CreateGroup from "../components/CreateGroup";
 import CreateSingleChat from "../components/CreateSingleChat";
 
-import { Client } from "@stomp/stompjs";
-import SockJS from "sockjs-client/dist/sockjs";
+import ws from "../utils/ws";
 
 
 export default function Dashboard() {
@@ -16,48 +15,13 @@ export default function Dashboard() {
     const [selectedView, setSelectedView] = useState({ type: null, data: null });
     const navigate = useNavigate();
 
-    // WebSocket client ref
-    const stompClient = useRef(null);
-
-    const connectWebSocket = () => {
-        stompClient.current = new Client({
-            // Uses SockJS as te websocket factory
-            webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
-            // Sets the reconnection attemptafter 5 seconds
-            reconnectDelay: 5000,
-            // Debug log
-            debug: (str) => console.log(str),
+    // Callback function for the beforeUnload event listener
+    const handleBeforeUnload = () => {
+        ws.publish("/app/user.online.status", {
+            email: auth.getEmail(),
+            online: false,
         });
-
-        // Emmits the event to notify that the user is online
-        stompClient.current.onConnect = () => {
-            console.log("Connected to websocket");
-
-            console.log(auth.getEmail())
-            stompClient.current.publish({
-                destination:"/app/user.online.status",
-                body: JSON.stringify({email: auth.getEmail(), online: true}),
-            });
-        }
-
-        // Handles stomp errors
-        stompClient.current.onStompError = (frame) => {
-            console.error("Broker reported error: " + frame.headers["message"]);
-            console.error("Additinal details: " + frame.body);
-        }
-
-        // Initiates the connetion
-        stompClient.current.activate();
-    }
-
-    const disconnectWebSocket = () => {
-        if (stompClient.current) {
-            stompClient.current.publish({
-                destination: "/app/user.online.status",
-                body: JSON.stringify({email: auth.getEmail(), online: false}),
-            });
-            stompClient.current.deactivate();
-        }
+        ws.disconnect();
     };
 
     // Redirects the user to the login page if not logged in and connects to the websocket 
@@ -68,16 +32,29 @@ export default function Dashboard() {
         }
 
         // Initiates the websocket connection
-        connectWebSocket();
+        ws.connect(()=> {
+            ws.publish("/app/user.online.status", {
+                email: auth.getEmail(),
+                online: true,
+            })
+        });
 
         // Adds an event listener to ensure disconnection on window close
-        window.addEventListener("beforeunload", disconnectWebSocket);
+        window.addEventListener("beforeunload", handleBeforeUnload);
 
         // Cleanup on unmount
         return () => {
             console.log("CLEANUP");
-            disconnectWebSocket();
-            window.removeEventListener("beforeunload",  disconnectWebSocket);
+            
+            // Publishes offline status then disconnect
+            ws.publish("/app/user.online.status", {
+                email: auth.getEmail(),
+                online: false,
+            });
+            // Closes the webscoket connection
+            ws.disconnect();
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+            
         }
     }, []);
 

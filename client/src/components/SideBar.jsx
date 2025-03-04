@@ -1,12 +1,11 @@
 import { useEffect, useRef } from "react";
 import { get } from "../utils/api";
+import ws from "../utils/ws";
 
 import { useSelector,useDispatch } from "react-redux";
 import { setUser } from "../redux/userSlice";
 import { addAdmin, addChat, addMember, removeMember,removeChat , setChats, updateChat, updateUnreadCounts, } from "../redux/chatsSlice";
 
-import { Client } from "@stomp/stompjs";
-import SockJS from "sockjs-client/dist/sockjs";
 
 export default function SideBar({ onSelectView }) {
     // Dispatch used to send actions to the Redux store
@@ -15,75 +14,6 @@ export default function SideBar({ onSelectView }) {
     // Gets chants and currentUser from Redux store
     const chats = useSelector((state) => state.chats.chats);
     const currentUser = useSelector((state) => state.user.user);
-
-    // WebSocket client ref
-    const stompClient = useRef(null);
-
-    // Function to connect to the websocket
-    const connectWebSocket = () => {
-        stompClient.current = new Client({
-            // Uses SockJS as te websocket factory
-            webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
-            // Sets the reconnection attemptafter 5 seconds
-            reconnectDelay: 5000,
-            // Debug log
-            debug: (str) => console.log(str),
-        });
-
-        // Sets up subscriptions on successful connection
-        stompClient.current.onConnect = () => {
-            console.log("Connected NOTIFICATIONS WS");
-
-            // Subscribes to the chat topic
-            stompClient.current.subscribe(`/chat/notifications/${currentUser.id}`, (messageOutput) => {
-                // Parses the message event
-                const eventData = JSON.parse(messageOutput.body);
-                
-                switch(eventData.type) {
-
-                    case "updateUnreadCounts":
-                        dispatch(updateUnreadCounts({chatId: eventData.chatId, userId: currentUser.id, increase: true}));
-                        break;
-
-                    case "addChat": 
-                        dispatch(addChat(eventData.payload));
-                        break;
-                    
-                    case "updateChat": 
-                        dispatch(updateChat(eventData.payload));
-                        break;
-                    
-                    case "addMember": 
-                        dispatch(addMember({newMember: eventData.payload, chatId: eventData.chatId}));
-                        break;
-                    
-                    case "addAdmin":
-                        dispatch(addAdmin({newAdminId: currentUser.id, chatId: eventData.chatId}));
-                        break;
-                    
-                    case "removeMember": 
-                        dispatch(removeMember({chatId: eventData.chatId, removedUserId: eventData.payload}));
-                        break;
-
-                    case "removeChat":
-                        dispatch(removeChat(eventData.chatId));
-                        break;
-                    
-                    default: 
-                    console.log("Unknown chate event type: ", eventData.type);
-                }
-            });
-        }
-
-        // Handles stomp errors
-        stompClient.current.onStompError = (frame) => {
-            console.error("Broker reported error: " + frame.headers["message"]);
-            console.error("Additinal details: " + frame.body);
-        }
-
-        // Initiates the connetion
-        stompClient.current.activate();
-    }
 
     // UseEffect to fetch user profile and chats on component mount
     useEffect(() => {
@@ -109,29 +39,45 @@ export default function SideBar({ onSelectView }) {
         // Calls the fetch function
         fetchSidebarData();
 
-        // // Connects to the websocket
-        // connectWebSocket();
-
-        // return () => {
-        //     if (stompClient.current) {
-        //         // Disconnects if connected and stops auto reconnect loop
-        //         stompClient.current.deactivate();
-        //     }
-        // }
     }, []);
 
 
     useEffect(() => {
         if (!currentUser) return;
-        
-                // Connects to the websocket
-                connectWebSocket();
 
-                return () => {
-                    if (stompClient.current) {
-                        // Disconnects if connected and stops auto reconnect loop
-                        stompClient.current.deactivate();
+                // Subscribes to a websocket event for changes in the chat list data
+                const topic = `/chat/notifications${currentUser.id}`;
+                ws.subscribe(topic, (eventData) => {
+                    switch(eventData.type) {
+                        case "updateUnreadCounts":
+                            dispatch(updateUnreadCounts({chatId: eventData.chatId, userId: currentUser.id, increase: true}));
+                            break;
+                        case "addChat": 
+                            dispatch(addChat(eventData.payload));
+                            break;
+                        case "updateChat": 
+                            dispatch(updateChat(eventData.payload));
+                            break;
+                        case "addMember": 
+                            dispatch(addMember({newMember: eventData.payload, chatId: eventData.chatId}));
+                            break;
+                        case "addAdmin":
+                            dispatch(addAdmin({newAdminId: currentUser.id, chatId: eventData.chatId}));
+                            break;
+                        case "removeMember": 
+                            dispatch(removeMember({chatId: eventData.chatId, removedUserId: eventData.payload}));
+                            break;
+                        case "removeChat":
+                            dispatch(removeChat(eventData.chatId));
+                            break;
+                        default: 
+                            console.log("Unknown chat event type: ", eventData.type);
                     }
+                });
+
+                // Cleanup function to remove the subscription
+                return () => {
+                    ws.unsubscribe(topic);
                 }
     }, [currentUser]);
 

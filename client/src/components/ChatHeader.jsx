@@ -1,13 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect} from "react";
 import UpdateDetails from "./UpdateDetails";
 import AddUserToGroup from "./AddUserToGroup";
 import DeleteChatModal from "./DeleteChatModal";
 import MembersModal from "./MemberList";
 
 import { get } from "../utils/api";
-
-import { Client } from "@stomp/stompjs";
-import SockJS from "sockjs-client/dist/sockjs";
+import ws from "../utils/ws";
 
 export default function ChatHeader({ chat, currentUser }) {
     // State for managing modals and dropdown visibility
@@ -19,9 +17,6 @@ export default function ChatHeader({ chat, currentUser }) {
     const otherUser = chat.group ? null : chat.members.find((member) => member.id !== currentUser.id);
     const [lastConnection, setLastConnetion] = useState(otherUser?.lastConnection);
 
-
-    // WebSocket client ref
-    const stompClient = useRef(null);
 
     // Function to close modal
     const closeModal = () => setModal("");
@@ -54,39 +49,6 @@ export default function ChatHeader({ chat, currentUser }) {
             ? chat.chat_name
             : "You";
 
-    const connectWebSocket = () => {
-        stompClient.current = new Client({
-            // Uses SockJS as te websocket factory
-            webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
-            // Sets the reconnection attemptafter 5 seconds
-            reconnectDelay: 5000,
-            // Debug log
-            debug: (str) => console.log(str),
-        });
-
-        // Sets up subscriptions on successful connection
-        stompClient.current.onConnect = () => {
-            console.log("Connected to websocket");
-
-            // Subscribes to the other user's online status topic
-            stompClient.current.subscribe(`/topic/online-status/${otherUser.email}`, (messageOutput) => {
-                // Gets the online status from the parsed event message
-                const isOnline = JSON.parse(messageOutput.body);
-                // If the user is online set the last connection to null and if the user disconnets sets their last connection to that moment
-                isOnline ? setLastConnetion(null) : setLastConnetion(new Date().toLocaleString('en-US', { year: '2-digit', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true }).replace(',', ''));
-            });
-        }
-
-        // Handles stomp errors
-        stompClient.current.onStompError = (frame) => {
-            console.error("Broker reported error: " + frame.headers["message"]);
-            console.error("Additinal details: " + frame.body);
-        }
-
-        // Initiates the connetion
-        stompClient.current.activate();
-    }
-
     useEffect(() => {
         // Early return if the other user is not defined meaning it is a self or group chat
         if (!otherUser) {
@@ -107,18 +69,19 @@ export default function ChatHeader({ chat, currentUser }) {
             }
         }
 
-        // Initiates the websocket connection
-        connectWebSocket();
+        const topic = `/topic/online-status/${otherUser.email}`;
+        // Subscribes to the online status of the other user
+        ws.subscribe(topic, (isOnline)=> {
+            // If the user is online set the last connection to null and if the user disconnets sets their last connection to that moment
+            isOnline ? setLastConnetion(null) : setLastConnetion(new Date().toLocaleString('en-US', { year: '2-digit', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true }).replace(',', ''));
+        });
         
         // Calls the getLatestLastConnection funtion
         getLatestLastConnection();
 
         // Cleanup on unmount
         return () => {
-            if (stompClient.current) {
-                // Disconnects if connected and stops auto reconnect loop
-                stompClient.current.deactivate();
-            }
+            ws.unsubscribe(topic);
         }
 
     }, [chat.id]);

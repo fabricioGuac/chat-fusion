@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { get } from "../utils/api";
 import Message from "./Message";
-import { Client } from "@stomp/stompjs";
-import SockJS from "sockjs-client/dist/sockjs";
+import ws from "../utils/ws";
 
 
 export default function ChatBody({ chat, currentUser, lastConnectedUser }) {
@@ -17,58 +16,6 @@ export default function ChatBody({ chat, currentUser, lastConnectedUser }) {
     const chatBodyRef = useRef(null);
     // Reference for the end of the chat
     const chatEndRef = useRef(null);
-
-    // WebSocket client ref
-    const stompClient = useRef(null);
-
-    // Method to connect to WebSocket
-    const connectWebSocket = () => {
-        stompClient.current = new Client({
-            // Uses SockJS as te websocket factory
-            webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
-            // Sets the reconnection attempt after 5 seconds
-            reconnectDelay: 5000,
-            // Debug log
-            debug: (str) => console.log(str),
-        });
-
-        // Sets up subscriptions on successful connection
-        stompClient.current.onConnect = () => {
-            console.log("Connected to websocket");
-
-            // Subscribes to the chat topic
-            stompClient.current.subscribe(`/chat/${chat.id}`, (messageOutput) => {
-                // Parses the message event
-                const event = JSON.parse(messageOutput.body);
-
-                // If it is a send event adds the new message to the chat
-                if (event.type === "send") {
-                    setMessages((prevMessages) => [...prevMessages, event.payload]);
-                } else if (event.type === "edit") {
-                    // Replaces the edited message in the chat
-                    setMessages((prevMessages) =>
-                        prevMessages.map((msg) => msg.id === event.payload.id ? event.payload : msg)
-                    );
-                } else if (event.type === "delete") {
-                    // Removes the delete message from the chat
-                    setMessages((prevMessages) => prevMessages.filter((msg) => msg.id !== event.payload));
-                }
-            });
-        }
-
-        // Handles stomp errors
-        stompClient.current.onStompError = (frame) => {
-            console.error("Broker reported error: " + frame.headers["message"]);
-            console.error("Additinal details: " + frame.body);
-        }
-
-        // Initiates the connetion
-        stompClient.current.activate();
-    };
-
-
-
-
 
     // Increments the skip count when scrolled to the top
     const handleScroll = () => {
@@ -110,15 +57,26 @@ export default function ChatBody({ chat, currentUser, lastConnectedUser }) {
         setMessages([]);
         fetchMessages();
 
-        // Initiates the websocket connection
-        connectWebSocket();
+        const topic = `/chat/${chat.id}`;
+        // Initiates the subscription to the message events
+        ws.subscribe(topic,(event) => {
+                // If it is a send event adds the new message to the chat
+                if (event.type === "send") {
+                    setMessages((prevMessages) => [...prevMessages, event.payload]);
+                } else if (event.type === "edit") {
+                    // Replaces the edited message in the chat
+                    setMessages((prevMessages) =>
+                        prevMessages.map((msg) => msg.id === event.payload.id ? event.payload : msg));
+                } else if (event.type === "delete") {
+                    // Removes the delete message from the chat
+                    setMessages((prevMessages) => prevMessages.filter((msg) => msg.id !== event.payload));
+                }
+        } )
 
         // Cleanup on unmount
         return () => {
-            if (stompClient.current) {
-                // Disconnects if connected and stops auto reconnect loop
-                stompClient.current.deactivate();
-            }
+            // Unsubsribes from the message events
+            ws.unsubscribe(topic);
         };
 
     }, [chat.id]);

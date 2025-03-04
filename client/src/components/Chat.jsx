@@ -4,14 +4,12 @@ import ChatInput from "./ChatInput";
 import { useSelector } from "react-redux";
 import { useState, useEffect, useRef } from "react";
 
-import { Client } from "@stomp/stompjs";
-import SockJS from "sockjs-client/dist/sockjs";
+import ws from "../utils/ws";
+
 
 // Chat component combining the header, body and input sections
 export default function Chat({ chatId, setSelectedView }) {
 
-    // WebSocket client ref
-        const stompClient = useRef(null);
     // State variable to manage the last user to connect to the chat
     const [lastConnectedUser, setLastconnectedUser] = useState(null);
 
@@ -20,62 +18,6 @@ export default function Chat({ chatId, setSelectedView }) {
     // Retrieves the current user data and current chat data from the Redux store
     const currentUser = useSelector((state) => state.user.user);
     const chat = useSelector((state) => state.chats.chats.find((chat) => chat.id === chatId));
-
-    // Function to connect to the websocket
-    const connectWebSocket = () => {
-        stompClient.current = new Client({
-            // Uses SockJS as te websocket factory
-            webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
-            // Sets the reconnection attemptafter 5 seconds
-            reconnectDelay: 5000,
-            // Debug log
-            debug: (str) => console.log(str),
-        });
-
-        // Sets up subscriptions on successful connection
-        stompClient.current.onConnect = () => {
-            console.log("Connected to websocket");
-            
-            stompClient.current.publish({
-                destination: `/app/connected/${chat.id}`,
-                body: JSON.stringify({ userId: currentUser.id, online: true }),
-            });
-
-
-            // Subscribes to the chat topic
-            stompClient.current.subscribe(`/chat/${chat.id}/connected`, (messageOutput) => {
-                // Parses the message event
-                const event = JSON.parse(messageOutput.body);
-                if(event.online) { 
-                    // Set the lastConnectedUser to the user with the id from the event
-                    setLastconnectedUser(chat.members.find((member) => member.id === event.userId));
-                } else {
-                    setLastconnectedUser(null);
-                }
-            });
-        }
-
-        // Handles stomp errors
-        stompClient.current.onStompError = (frame) => {
-            console.error("Broker reported error: " + frame.headers["message"]);
-            console.error("Additinal details: " + frame.body);
-        }
-
-        // Initiates the connetion
-        stompClient.current.activate();
-    }
-
-    // Fucntion to disconnect from the websocket
-    const disconnectWebSocket = () => {
-        if (stompClient.current) {
-            stompClient.current.unsubscribe(`/chat/${chat.id}/connected`);
-            stompClient.current.publish({
-                destination: `/app/connected/${chat.id}`,
-                body: JSON.stringify({ userId: currentUser.id, online: false }),
-            });
-            stompClient.current.deactivate();
-        }
-    };
 
     // UseEffect to handle connection and disconection from the websocket on chat change
     useEffect( () => {
@@ -86,12 +28,22 @@ export default function Chat({ chatId, setSelectedView }) {
             return;
         }
 
-        // Connects to the websocket
-        connectWebSocket();
+        ws.publish(`/app/connected/${chat.id}`, { userId: currentUser.id, online: true });
 
-        // Cleanup function to disconnect from the websocket
+        const topic = `/chat/${chat.id}/connected`;
+        // Initializes a subscription to listen on connections to a chat
+        ws.subscribe(topic,(event) =>{
+            if(event.online) { 
+                // Set the lastConnectedUser to the user with the id from the event
+                setLastconnectedUser(chat.members.find((member) => member.id === event.userId));
+            } else {
+                setLastconnectedUser(null);
+            }
+        } )
+        
+        // Cleanup function to unsubscribe from the chat connections events
         return () => {
-            disconnectWebSocket();
+            ws.unsubscribe(topic);
         };
 
     }, [chatId, chat])
