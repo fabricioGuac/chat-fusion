@@ -140,6 +140,8 @@ public class ChatServiceImplementation implements ChatService {
 			groupChat.getUnreadCounts().put(memberId, 0);
 		 }
 		
+		// Notifies all members of the creation of the group
+		websocketService.chatNotificationEvent(groupChat.getId(), reqUser.getId(), "addChat", groupChat);
 		for (String memberId : userIds) {
 			websocketService.chatNotificationEvent(groupChat.getId(), memberId, "addChat", groupChat);
 		 }

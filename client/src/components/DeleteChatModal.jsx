@@ -16,6 +16,7 @@ export default function DeleteChatModal({ chatId, closeModal }) {
                 await  del(`/api/chats/delete/${chatId}`);
                 // Closes the modal on success
                 closeModal();
+                //TODO: Ensure the chat is closed after deletion (At least notify the user the chat does not exist anymore)
             } catch (error) {
                 console.log(`Unable to delete chat`, error);
                 setErrorMessage(error.message || "An unexpected error occurred");

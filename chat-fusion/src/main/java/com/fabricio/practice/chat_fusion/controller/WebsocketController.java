@@ -11,6 +11,10 @@ import org.springframework.stereotype.Controller;
 import com.fabricio.practice.chat_fusion.config.JwtProvider;
 import com.fabricio.practice.chat_fusion.exception.ChatException;
 import com.fabricio.practice.chat_fusion.exception.UserException;
+import com.fabricio.practice.chat_fusion.model.Chat;
+import com.fabricio.practice.chat_fusion.model.User;
+import com.fabricio.practice.chat_fusion.request.CallEventRequest;
+import com.fabricio.practice.chat_fusion.request.CallRequest;
 import com.fabricio.practice.chat_fusion.request.UpdateStatusRequest;
 import com.fabricio.practice.chat_fusion.service.ChatService;
 import com.fabricio.practice.chat_fusion.service.UserService;
@@ -59,8 +63,25 @@ public class WebsocketController {
 		
 		// Forwards the connection change to the chat to all users connected
 		simpMessagingTemplate.convertAndSend("/chat/" + chatId + "/connected", statusReq);
-		
 	}
 	
-	 
+	// Endpoint to notify users of incoming calls
+	@MessageMapping("/call/{chatId}")
+	public void handleIncomingCall(@DestinationVariable String chatId, @Payload CallRequest callRequest) throws ChatException {
+		// Gets the chat that is receiving a call event
+		Chat chat = chatService.findChatById(chatId);
+		
+		// Notifies all members of the chat excluding the caller of the incoming call
+		for(User member : chat.getMembers()) {
+			if(!member.getId().equals(callRequest.getUserId())) {
+				simpMessagingTemplate.convertAndSend("/topic/call/"+ member.getEmail(), callRequest);
+			}
+		}
+	}
+	
+	// Endpoint to notify users of events in their current call
+	@MessageMapping("/call-room/{chatId}")
+public void handleCallRoomEvents(@DestinationVariable String chatId, @Payload CallEventRequest callEvent) {
+		simpMessagingTemplate.convertAndSend("/topic/call-room/"+chatId, callEvent);
+	}
 }

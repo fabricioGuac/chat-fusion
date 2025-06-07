@@ -4,19 +4,23 @@ import AddUserToGroup from "./AddUserToGroup";
 import DeleteChatModal from "./DeleteChatModal";
 import MembersModal from "./MemberList";
 
+import { useDispatch } from 'react-redux';
+import { setCall } from '../redux/callSlice';
+
 import { get } from "../utils/api";
 import ws from "../utils/ws";
 
 export default function ChatHeader({ chat, currentUser }) {
+    // Dispatch used to send actions to the Redux store
+    const dispatch = useDispatch();
+
     // State for managing modals and dropdown visibility
     const [modal, setModal] = useState("");
     const [dropDownOpen, setDropDownOpen] = useState(false);
 
-
     // Initializes `lastConnection` state variable and uses `otherUser` for all conditional logic
     const otherUser = chat.group ? null : chat.members.find((member) => member.id !== currentUser.id);
     const [lastConnection, setLastConnetion] = useState(otherUser?.lastConnection);
-
 
     // Function to close modal
     const closeModal = () => setModal("");
@@ -24,15 +28,19 @@ export default function ChatHeader({ chat, currentUser }) {
     // Toggles the dropdown menu
     const toggleDropDown = () => setDropDownOpen(!dropDownOpen);
 
-
-    // Placeholder for calls
+    // Function to handle call requests
     const handleCall = () => {
-        console.log("Call logic coming soon");
-    };
 
-    // Placeholder for videocalls
-    const handleVideoCall = () => {
-        console.log("Video call logic coming soon");
+        // Gets the group name if it is a group or the user username if it is a private chat and the caller id to skip notifying the caller
+        const caller = {
+            displayName: chat.group ? chat.chat_name : currentUser.username,
+            userId:currentUser.id,
+            chatId:chat.id, 
+        };
+        // Emits the call request event to the chat members
+        ws.publish(`/app/call/${chat.id}`, caller);
+        // Opens the call room
+        dispatch(setCall(chat.id));
     };
 
     // Determines the image source for the chat
@@ -98,7 +106,6 @@ export default function ChatHeader({ chat, currentUser }) {
                 <h1 className="text-lg font-bold text-gray-800">{displayName}</h1>
                 {otherUser && (
                     <p className="text-sm text-gray-600">
-                        {/* {lastConnection ? lastConnection : "online" } */}
                         {lastConnection ? `Last connection ${lastConnection}` : "online"}
 
                     </p>
@@ -113,13 +120,6 @@ export default function ChatHeader({ chat, currentUser }) {
                     aria-label="Call"
                 >
                     📞
-                </button>
-                <button
-                    onClick={handleVideoCall}
-                    className="text-gray-600 hover:text-gray-800"
-                    aria-label="Video Call"
-                >
-                    🎥
                 </button>
 
                 {/* Options dropdown */}

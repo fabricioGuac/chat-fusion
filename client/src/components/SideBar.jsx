@@ -1,10 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { get } from "../utils/api";
 import ws from "../utils/ws";
 
-import { useSelector,useDispatch } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { setUser } from "../redux/userSlice";
-import { addAdmin, addChat, addMember, removeMember,removeChat , setChats, updateChat, updateUnreadCounts, } from "../redux/chatsSlice";
+import { addAdmin, addChat, addMember, removeMember, removeChat, setChats, updateChat, updateUnreadCounts, } from "../redux/chatsSlice";
 
 
 export default function SideBar({ onSelectView }) {
@@ -33,7 +33,7 @@ export default function SideBar({ onSelectView }) {
             } catch (error) {
                 console.log(error.message);
                 console.log("Error fetching data" + error);
-            } 
+            }
         }
 
         // Calls the fetch function
@@ -45,40 +45,43 @@ export default function SideBar({ onSelectView }) {
     useEffect(() => {
         if (!currentUser) return;
 
-                // Subscribes to a websocket event for changes in the chat list data
-                const topic = `/chat/notifications${currentUser.id}`;
-                ws.subscribe(topic, (eventData) => {
-                    switch(eventData.type) {
-                        case "updateUnreadCounts":
-                            dispatch(updateUnreadCounts({chatId: eventData.chatId, userId: currentUser.id, increase: true}));
-                            break;
-                        case "addChat": 
-                            dispatch(addChat(eventData.payload));
-                            break;
-                        case "updateChat": 
-                            dispatch(updateChat(eventData.payload));
-                            break;
-                        case "addMember": 
-                            dispatch(addMember({newMember: eventData.payload, chatId: eventData.chatId}));
-                            break;
-                        case "addAdmin":
-                            dispatch(addAdmin({newAdminId: currentUser.id, chatId: eventData.chatId}));
-                            break;
-                        case "removeMember": 
-                            dispatch(removeMember({chatId: eventData.chatId, removedUserId: eventData.payload}));
-                            break;
-                        case "removeChat":
-                            dispatch(removeChat(eventData.chatId));
-                            break;
-                        default: 
-                            console.log("Unknown chat event type: ", eventData.type);
-                    }
-                });
+        const topic = `/chat/notifications/${currentUser.id}`;
+        const delay = 500;
 
-                // Cleanup function to remove the subscription
-                return () => {
-                    ws.unsubscribe(topic);
+        const timeout = setTimeout(() => {
+            ws.subscribe(topic, (eventData) => {
+                switch (eventData.type) {
+                    case "updateUnreadCounts":
+                        dispatch(updateUnreadCounts({ chatId: eventData.chatId, userId: currentUser.id, increase: true }));
+                        break;
+                    case "addChat":
+                        dispatch(addChat(eventData.payload));
+                        break;
+                    case "updateChat":
+                        dispatch(updateChat(eventData.payload));
+                        break;
+                    case "addMember":
+                        dispatch(addMember({ newMember: eventData.payload, chatId: eventData.chatId }));
+                        break;
+                    case "addAdmin":
+                        dispatch(addAdmin({ newAdminId: currentUser.id, chatId: eventData.chatId }));
+                        break;
+                    case "removeMember":
+                        dispatch(removeMember({ chatId: eventData.chatId, removedUserId: eventData.payload }));
+                        break;
+                    case "removeChat":
+                        dispatch(removeChat(eventData.chatId));
+                        break;
+                    default:
+                        console.log("Unknown chat event type: ", eventData.type);
                 }
+            });
+        }, delay);
+
+        return () => {
+            clearTimeout(timeout); // cleanup timer if unmounted early
+            ws.unsubscribe(topic); // also unsubscribe from the topic
+        };
     }, [currentUser]);
 
 
@@ -164,8 +167,8 @@ export default function SideBar({ onSelectView }) {
                                     key={chat.id}
                                     className="p-2 flex items-center gap-4 hover:bg-gray-200 cursor-pointer"
                                     onClick={() => {
-                                        onSelectView({ type: "chat", data: { chatId:chat.id } });
-                                        dispatch(updateUnreadCounts({chatId: chat.id, userId: currentUser.id, increase: false}));
+                                        onSelectView({ type: "chat", data: { chat } });
+                                        dispatch(updateUnreadCounts({ chatId: chat.id, userId: currentUser.id, increase: false }));
                                     }
                                     }
                                 >

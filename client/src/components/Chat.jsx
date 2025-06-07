@@ -2,13 +2,13 @@ import ChatHeader from "./ChatHeader";
 import ChatBody from "./ChatBody";
 import ChatInput from "./ChatInput";
 import { useSelector } from "react-redux";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 import ws from "../utils/ws";
 
 
 // Chat component combining the header, body and input sections
-export default function Chat({ chatId, setSelectedView }) {
+export default function Chat({ chat, setSelectedView }) {
 
     // State variable to manage the last user to connect to the chat
     const [lastConnectedUser, setLastconnectedUser] = useState(null);
@@ -17,7 +17,6 @@ export default function Chat({ chatId, setSelectedView }) {
 
     // Retrieves the current user data and current chat data from the Redux store
     const currentUser = useSelector((state) => state.user.user);
-    const chat = useSelector((state) => state.chats.chats.find((chat) => chat.id === chatId));
 
     // UseEffect to handle connection and disconection from the websocket on chat change
     useEffect( () => {
@@ -28,7 +27,7 @@ export default function Chat({ chatId, setSelectedView }) {
             return;
         }
 
-        ws.publish(`/app/connected/${chat.id}`, { userId: currentUser.id, online: true });
+        ws.publish(`/app/connected/${chat.id}`, { userId: currentUser.id, online: true }); // Notifies the others about the connection to the chat
 
         const topic = `/chat/${chat.id}/connected`;
         // Initializes a subscription to listen on connections to a chat
@@ -43,10 +42,11 @@ export default function Chat({ chatId, setSelectedView }) {
         
         // Cleanup function to unsubscribe from the chat connections events
         return () => {
+            ws.publish(`/app/connected/${chat.id}`, { userId: currentUser.id, online: false }); // Notifies the others about the disconnection to the chat
             ws.unsubscribe(topic);
         };
 
-    }, [chatId, chat])
+    }, [chat])
 
         // Renders a loading indicator if the user data is not yet available
         if (!currentUser || !chat) {

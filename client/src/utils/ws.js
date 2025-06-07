@@ -20,7 +20,7 @@ class WebSocketService{
             // Sets reconnection attempts after 5 seconds
             reconnectDelay: 5000,
             // Debug log
-            debug: (str) => console.log(str),
+            // debug: (str) => console.log(str),
         });
 
         // Logs message on successfull connection

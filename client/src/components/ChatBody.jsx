@@ -16,13 +16,20 @@ export default function ChatBody({ chat, currentUser, lastConnectedUser }) {
     const chatBodyRef = useRef(null);
     // Reference for the end of the chat
     const chatEndRef = useRef(null);
+    // Referece for the flag if it is prepending old messages
+    const isPrependingRef = useRef(false);
+    // Reference to mantain the heigh once old messages are prepended
+    const prevScrollHeightRef = useRef(0);
 
     // Increments the skip count when scrolled to the top
     const handleScroll = () => {
         if (chatBodyRef.current.scrollTop === 0) {
+            isPrependingRef.current = true;
+            prevScrollHeightRef.current = chatBodyRef.current.scrollHeight;
             skipRef.current += 100;
             console.log("Fetching messages");
             console.log(skipRef.current);
+            fetchMessages();
         }
     };
 
@@ -34,7 +41,8 @@ export default function ChatBody({ chat, currentUser, lastConnectedUser }) {
             // Makes API call to get the messages for the current chat and skip the indiated messages
             const response = await get(`/api/messages/chat/${chat.id}?skip=${skipRef.current}`);
             // Prepends the fetched messages to the existing list
-            setMessages((prevMessages) => [...response, ...prevMessages]);
+            setMessages((prevMessages) => [...response.reverse(), ...prevMessages]);
+
         } catch (error) {
             console.log("Error fetching messages", error.message);
         } finally {
@@ -59,19 +67,19 @@ export default function ChatBody({ chat, currentUser, lastConnectedUser }) {
 
         const topic = `/chat/${chat.id}`;
         // Initiates the subscription to the message events
-        ws.subscribe(topic,(event) => {
-                // If it is a send event adds the new message to the chat
-                if (event.type === "send") {
-                    setMessages((prevMessages) => [...prevMessages, event.payload]);
-                } else if (event.type === "edit") {
-                    // Replaces the edited message in the chat
-                    setMessages((prevMessages) =>
-                        prevMessages.map((msg) => msg.id === event.payload.id ? event.payload : msg));
-                } else if (event.type === "delete") {
-                    // Removes the delete message from the chat
-                    setMessages((prevMessages) => prevMessages.filter((msg) => msg.id !== event.payload));
-                }
-        } )
+        ws.subscribe(topic, (event) => {
+            // If it is a send event adds the new message to the chat
+            if (event.type === "send") {
+                setMessages((prevMessages) => [...prevMessages, event.payload]);
+            } else if (event.type === "edit") {
+                // Replaces the edited message in the chat
+                setMessages((prevMessages) =>
+                    prevMessages.map((msg) => msg.id === event.payload.id ? event.payload : msg));
+            } else if (event.type === "delete") {
+                // Removes the delete message from the chat
+                setMessages((prevMessages) => prevMessages.filter((msg) => msg.id !== event.payload));
+            }
+        })
 
         // Cleanup on unmount
         return () => {
@@ -83,7 +91,20 @@ export default function ChatBody({ chat, currentUser, lastConnectedUser }) {
 
     // Scrolls to bottom when chat changes or new messages arrive
     useEffect(() => {
-        scrollToBottom();
+    const chatBody = chatBodyRef.current;
+
+    if (isPrependingRef.current && chatBody) {
+        // Calculates the difference in scroll height caused by new messages
+        const newScrollHeight = chatBody.scrollHeight;
+        const scrollDifference = newScrollHeight - prevScrollHeightRef.current;
+
+        // Offsets the scroll position by the height difference to preserve position
+        chatBody.scrollTop = scrollDifference;
+
+        isPrependingRef.current = false;
+    } else {
+        scrollToBottom(); // Only scroll to bottom on new messages / chat change
+    }
     }, [chat.id, messages])
 
     // Adds a scroll event listener to the chat body element to detect when the user scrolls to the top
@@ -97,13 +118,13 @@ export default function ChatBody({ chat, currentUser, lastConnectedUser }) {
     // UseEffect to mark the unread messsages as read
     useEffect(() => {
         // Early return if there is no lastConnected user
-        if(!lastConnectedUser) {
+        if (!lastConnectedUser) {
             return;
         }
         // Iterates over the message lista and adds the lastConnectedUser if not included in the readBy field
-        setMessages((prevMessages) => 
-            prevMessages.map((message) => 
-                message.user.id !== lastConnectedUser.id && !message.readBy.some(user => user.id === lastConnectedUser.id) ? {...message, readBy: [...message.readBy, lastConnectedUser]} : message 
+        setMessages((prevMessages) =>
+            prevMessages.map((message) =>
+                message.user.id !== lastConnectedUser.id && !message.readBy.some(user => user.id === lastConnectedUser.id) ? { ...message, readBy: [...message.readBy, lastConnectedUser] } : message
             )
         )
     }, [lastConnectedUser]); // Uses the lastConnectedUser as a dependency array so that it triggers on each connection 

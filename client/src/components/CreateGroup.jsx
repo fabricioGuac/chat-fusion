@@ -42,7 +42,7 @@ export default function CreateGroup({ setSelectedView }) {
             const response = await post("/api/chats/group", formData);
 
             // Set the view to the newly created group chat passing the chat data
-            setSelectedView({ type: "chat", data: {chat:response } });
+            setSelectedView({ type: "chat", data: {chat:response} });
         } catch (error) {
             console.log("Error creating chat ", error);
         }
