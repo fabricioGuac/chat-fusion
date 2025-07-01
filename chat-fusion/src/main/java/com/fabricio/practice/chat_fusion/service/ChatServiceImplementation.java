@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
 import com.fabricio.practice.chat_fusion.exception.ChatException;
@@ -54,8 +55,11 @@ public class ChatServiceImplementation implements ChatService {
 		
 		User user2 = userService.findUserById(userId2); // Validation to ensure the second user exists
 		
-		// Checks if a chat between the two users already exists
-		Chat existingChat = chatRepository.findSingleChatByUserIds(reqUser.getId(), userId2);
+		// Converts user string IDs to ObjectId to match DBRef format in the 'members' field
+		ObjectId objectUser1Id = new ObjectId(reqUser.getId());
+		ObjectId objectUser2Id = new ObjectId(user2.getId());
+
+		Chat existingChat = chatRepository.findSingleChatByUserIds(objectUser1Id, objectUser2Id);;
 		if(existingChat != null ) {
 			// Returns the existing chat if found
 			return existingChat;

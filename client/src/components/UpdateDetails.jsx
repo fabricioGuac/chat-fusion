@@ -33,16 +33,16 @@ export default function UpdateDetails({ data, closeModal }) {
     // Handles submission for updating details
     const handleSubmit = async (e) => {
         e.preventDefault();
-    
+
         // Creates a FormData object to send data
         const formDataToSend = new FormData();
         formDataToSend.append("name", formData.title);
         if (formData.image) {
             formDataToSend.append("pfp", formData.image);
         }
-    
+
         console.log("Form Data:", formData);
-    
+
         try {
             // Determines the API endpoint based on the type
             if (type === "user") {
@@ -59,7 +59,7 @@ export default function UpdateDetails({ data, closeModal }) {
             console.log("Error updating details:", error);
         }
     };
-    
+
 
     // Handles displaying image preview
     const imagePreview = formData.image
@@ -96,16 +96,19 @@ export default function UpdateDetails({ data, closeModal }) {
                 )}
 
                 {/* Input for uploading an image */}
-                <input
-                    type="file"
-                    name="image"
-                    accept="image/*"
-                    onChange={(e) =>
-                        // Updates formdata with the selected image
-                        setFormData({ ...formData, image: e.target.files[0] })
-                    }
-                    className="w-full border px-3 py-2 rounded"
-                />
+                <label className="block cursor-pointer bg-green-100 border border-green-300 text-green-700 px-4 py-2 rounded hover:bg-green-200">
+                    Upload New Profile Picture
+                    <input
+                        type="file"
+                        name="image"
+                        accept="image/*"
+                        onChange={(e) =>
+                            setFormData({ ...formData, image: e.target.files[0] })
+                        }
+                        className="hidden"
+                    />
+                </label>
+
             </div>
 
             <div className="m-4">
@@ -144,7 +147,7 @@ export default function UpdateDetails({ data, closeModal }) {
                     Update
                 </button>
 
-                 {/* Show logout button only if the type is 'user' */}
+                {/* Show logout button only if the type is 'user' */}
                 {type === "user" && (
                     <button
                         type="button"

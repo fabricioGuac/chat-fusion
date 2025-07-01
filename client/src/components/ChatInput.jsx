@@ -7,9 +7,13 @@ export default function ({ chatId }) {
     const [file, setFile] = useState(null);
     const [audioBlob, setAudioBlob] = useState(null);
     const [isRecording, setIsRecording] = useState(false);
+    const [sendError, setSendError] = useState(false);
+    const [countDown, setCountDown] = useState(5);
     // References for managing the media recorder and audio chunks during recording
     const mediaRecorderRef = useRef(null);
     const audioChunks = useRef([]);
+    // Reference for the file input
+    const fileInputRef = useRef(null);
 
 
     // Handles changes to the file input 
@@ -127,9 +131,22 @@ export default function ({ chatId }) {
             setFile(null);
             setAudioBlob(null);
         } catch (error) {
-            console.log("Failed to send message", error);
+            console.error("Failed to send message", error);
+            setSendError(true);
+            let timer = 5;
+            setCountDown(timer);
+            // Interval to refresh the page if an error occurs when sending a message (most likely a session expired, a chat deleted, no connection or servers down)
+            const interval = setInterval(() => {
+                timer--;
+                setCountDown(timer);
+                if (timer === 0) {
+                    clearInterval(interval);
+                    window.location.reload();
+                }
+            }, 1000);
         }
     };
+
 
     return (
         <div className="flex flex-col items-center p-4 bg-white w-full mx-auto">
@@ -141,6 +158,13 @@ export default function ({ chatId }) {
                 }}
                 className="w-full"
             >
+                {/* Display the error message and notice of the incoming reload */}
+                {sendError && (
+                    <div className="text-red-600 text-sm mt-2">
+                        Error sending message. Health check... Reloading in {countDown}s
+                    </div>
+                )}
+
                 {/* Message input and send button */}
                 <div className="flex items-center w-full gap-2 mb-3">
                     <input
@@ -176,21 +200,37 @@ export default function ({ chatId }) {
                     </div>
                 </div>
 
-                {/* Displays the selected file or a message indicating the audio recording is ready */}
-                {(file || audioBlob) && (
-                    <div className="w-full text-sm text-gray-600 mb-3">
-                        {file && <p>{file.name}</p>}
-                        {audioBlob && <p>{"Audio ready"}</p>}
-                    </div>
-                )}
+                {/* file upload input and remove option*/}
+                <div className="mb-3 flex items-center gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-700 border border-gray-300 px-3 py-1 rounded hover:bg-gray-100 bg-gray-50">
+                        <span>Attach File</span>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileChange}
+                            accept="image/*,video/*,audio/*"
+                            className="hidden"
+                        />
+                    </label>
 
-                {/* File upload input */}
-                <input
-                    type="file"
-                    onChange={handleFileChange}
-                    accept="image/*,video/*,audio/*"
-                    className="w-full p-2 mb-3 text-sm text-gray-600 border rounded-md cursor-pointer bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                    {(file || audioBlob) && (
+                        <>
+                            {file && <p className="text-sm text-gray-600">{file.name}</p>}
+                            {audioBlob && <p className="text-sm text-gray-600">Audio ready</p>}
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setFile(null);
+                                    setAudioBlob(null);
+                                    if (fileInputRef.current) fileInputRef.current.value = null;
+                                }}
+                                className="text-red-500 text-xs hover:underline"
+                            >
+                                ✕ Remove
+                            </button>
+                        </>
+                    )}
+                </div>
             </form>
         </div>
     );

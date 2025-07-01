@@ -2,6 +2,7 @@ package com.fabricio.practice.chat_fusion.repository;
 
 import java.util.List;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 //import org.springframework.data.mongodb.repository.Query;
@@ -19,7 +20,11 @@ public interface ChatRepository extends MongoRepository<Chat, String>{
 
 	
 	// Custom query method to find a single non-group chat with specific members
-	@Query("{ 'isGroup': false, 'memberIds': { $all: [?0, ?1] } }")
-	Chat findSingleChatByUserIds(String reqUserId, String userId2);
+	@Query("{ $and: [ " +
+	        "{ isGroup: false }, " +
+	        "{ 'members.$id': { $all: [?0, ?1] } } ] }")
+	Chat findSingleChatByUserIds(ObjectId id1, ObjectId id2);
+
+
 	
 }

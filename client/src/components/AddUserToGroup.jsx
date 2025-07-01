@@ -9,7 +9,6 @@ export default function AddUserToGroup({ chatId, closeModal }) {
             await put(`/api/chats/${chatId}/add/${user.id}`);
             // Closes the modal on success
             closeModal();
-            // TODO: handle the notification with WebSocket
         } catch (error) {
             console.log("Error adding user to group", error);
         }

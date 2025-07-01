@@ -86,11 +86,11 @@ export default function SideBar({ onSelectView }) {
 
 
     if (!currentUser) {
-        return <div className="w-64 bg-gray-100 text-center h-screen p-4">Loading...</div>;
+        return <div className="w-full bg-gray-100 text-center h-screen p-4">Loading...</div>;
     }
 
     return (
-        <aside className="w-64 bg-gray-100 h-screen flex flex-col">
+        <aside className="w-full bg-gray-100 h-screen flex flex-col">
             {/* Header Section */}
             <div
                 className="p-4 flex items-center gap-4 cursor-pointer hover:bg-gray-200"

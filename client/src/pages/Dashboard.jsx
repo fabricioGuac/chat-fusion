@@ -20,8 +20,10 @@ export default function Dashboard() {
     // Dispatch used to send actions to the Redux store
     const dispatch = useDispatch();
 
-    // State  variables to track call related status
+    // State variable to track call related status
     const [incomingCall, setIncomingCall] = useState(null); // Stores data about an incoming call (before it's accepted)
+    // State variable to track the side bar status on smaller screens
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     // useRefs for tracking current user and active call chatId
     // These are updated via useEffect to ensure access during unload
@@ -127,7 +129,13 @@ export default function Dashboard() {
                 return <UpdateDetails data={selectedView.data} />;
             default:
                 // Default message when no view is seleted
-                return <h2 className="flex justify-center items-center h-screen text-5xl">Select a chat or create a group!</h2>;
+                return (
+                    <div className="flex items-center justify-center h-full w-full">
+                        <h2 className="text-3xl sm:text-5xl text-center px-4">
+                            Select a chat or create a group!
+                        </h2>
+                    </div>
+                )
         }
     };
 
@@ -146,24 +154,59 @@ export default function Dashboard() {
         setIncomingCall(null);
     }
 
+
     return (
-        <div className="flex h-screen">
-            {/* Side bar to control the rendered view */}
-            <SideBar onSelectView={setSelectedView} />
-            {/* Dynamically rendered main content */}
-            <main className="flex-1 overflow-y-auto bg-white">
-                {renderContent()}
-            </main>
-            {/* Modal for incoming calls */}
-            {incomingCall && (
-                <IncomingCallModal
-                    caller={incomingCall.displayName}
-                    onAccept={handleAccept}
-                    onDecline={handleDecline}
+        <div className="relative h-screen overflow-hidden">
+
+            {/* Arrow to open the side bar on mobile  */}
+            <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="md:hidden fixed top-12 left-7 z-5"
+            >
+                {!sidebarOpen && "←"}
+            </button>
+
+            {/* Dark Backdrop when sidebar is open on mobile */}
+            {sidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black bg-opacity-30 z-30 md:hidden"
+                    onClick={() => setSidebarOpen(false)}
                 />
             )}
-            {/* Modal for call rooms */}
-            {activeCallId && <CallRoomModal />}
+
+            <div className="flex h-full">
+
+                {/* Sidebar */}
+                <div
+                    className={`
+                        fixed z-40 inset-y-0 left-0 w-3/4 max-w-xs bg-white shadow-md transform transition-transform duration-300
+                        md:relative md:translate-x-0 md:w-64 md:z-auto
+                        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+                    `}
+                >
+                    <SideBar
+                        onSelectView={(view) => {
+                            setSelectedView(view);
+                            setSidebarOpen(false);
+                        }}
+                    />
+                </div>
+
+                {/* Main Content */}
+                <main className="flex-1 overflow-y-auto bg-white">
+                    {renderContent()}
+                </main>
+
+                {/* Call Modals */}
+                {incomingCall && (
+                    <IncomingCallModal
+                        caller={incomingCall.displayName}
+                        onAccept={handleAccept}
+                        onDecline={handleDecline}
+                    />
+                )}
+                {activeCallId && <CallRoomModal />}
+            </div>
         </div>
-    )
+    );
 }

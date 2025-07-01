@@ -42,7 +42,7 @@ export default function CreateGroup({ setSelectedView }) {
             const response = await post("/api/chats/group", formData);
 
             // Set the view to the newly created group chat passing the chat data
-            setSelectedView({ type: "chat", data: {chat:response} });
+            setSelectedView({ type: "chat", data: { chat: response } });
         } catch (error) {
             console.log("Error creating chat ", error);
         }
@@ -50,6 +50,40 @@ export default function CreateGroup({ setSelectedView }) {
 
     return (
         <div className="p-4">
+            <form className="mt-4 p-4">
+                <input
+                    type="text"
+                    placeholder="Group name"
+                    required
+                    onChange={(e) => setGroupName(e.target.value)}
+                    className="border border-gray-300 rounded p-2 w-full mt-2"
+                />
+
+                {/* <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setGroupImage(e.target.files[0])}
+                    className="mt-2"
+                /> */}
+
+                <label className="block mt-2 cursor-pointer bg-blue-100 border border-blue-300 text-blue-700 px-4 py-1 rounded hover:bg-blue-200">
+                    Choose Group Image
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setGroupImage(e.target.files[0])}
+                        className="hidden"
+                    />
+                </label>
+
+
+                {groupImage && (
+                    <img src={URL.createObjectURL(groupImage)}
+                        alt="preview"
+                        className="w-80 h-80 object-cover rounded-full mt-1" />
+                )}
+            </form>
+
             <SearchUser onSelectUser={handleAddMember} searchPlaceHolder="Find your group members" />
 
             {members.length > 0 && (
@@ -73,30 +107,14 @@ export default function CreateGroup({ setSelectedView }) {
                     </ul>
                 </div>
             )}
-
-            <form onSubmit={handleCreateGroup} className="mt-4">
-                <input
-                    type="text"
-                    placeholder="Group name"
-                    required
-                    onChange={(e) => setGroupName(e.target.value)}
-                    className="border border-gray-300 rounded p-2 w-full mt-2"
-                />
-
-                <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setGroupImage(e.target.files[0])}
-                    className="mt-2"
-                />
-
+            <div className="mt-6">
                 <button
-                    type="submit"
-                    className="bg-blue-500 text-white py-1 px-4 rounded mt-4"
+                    onClick={handleCreateGroup}
+                    className="bg-blue-500 text-white py-2 px-6 rounded w-full"
                 >
                     Create Group
                 </button>
-            </form>
+            </div>
         </div>
     );
 }
