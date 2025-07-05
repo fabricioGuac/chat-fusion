@@ -12,7 +12,7 @@
 	<artifactId>chat-fusion</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>chat-fusion</name>
-	<description>Chat-fusion is a lively real-time chat experience with dynamic features, powered by Java, Spring Boot, Kafka for scalable message queues, WebSockets for instant messaging, AWS S3 for media storage, and MongoDB for the database.</description>
+	<description>Chat-fusion is a lively real-time chat experience with dynamic features, powered by Java, Spring Boot, WebSockets for instant messaging, AWS S3 for media storage, and MongoDB for the database.</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -90,6 +90,11 @@
     	<groupId>software.amazon.awssdk</groupId>
     	<artifactId>s3</artifactId>
     	<version>2.20.90</version>
+	</dependency>
+	
+	<dependency>
+  		<groupId>org.springframework.boot</groupId>
+  		<artifactId>spring-boot-starter-actuator</artifactId>
 	</dependency>
 
 

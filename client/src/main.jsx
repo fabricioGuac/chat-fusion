@@ -10,6 +10,7 @@ import ErrorPage from './pages/ErrorPage.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Login from './pages/Login.jsx';
 import Signup from './pages/Singup.jsx';
+import ServerDown from './pages/ServerDown.jsx';
 
 // Defines the routes to wich the components will render
 const router = createBrowserRouter([
@@ -34,8 +35,9 @@ const router = createBrowserRouter([
 
 
 createRoot(document.getElementById('root')).render(
-    //
-    <Provider store={store}> 
-      < RouterProvider router={router} />
+  <Provider store={store}> 
+      <ServerDown>
+        < RouterProvider router={router} />
+      </ServerDown>
     </Provider>
 )
