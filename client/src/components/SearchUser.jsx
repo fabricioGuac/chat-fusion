@@ -19,7 +19,7 @@ export default function SearchUser({ onSelectUser, searchPlaceHolder }) {
 
         try {
             // Makes the api call
-            const response = await get(`api/users/${query.trim()}`);
+            const response = await get(`/api/users/${query.trim()}`);
             // Updates the state variable to the fetched data
             setResults(response);
 
