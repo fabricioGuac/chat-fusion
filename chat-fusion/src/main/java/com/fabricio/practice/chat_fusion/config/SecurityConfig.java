@@ -66,6 +66,8 @@ public class SecurityConfig {
                     config.setAllowCredentials(true);
                     // Exposes the Authorization header to the front end (important for handling JWT tokens)
                     config.setExposedHeaders(Arrays.asList("Authorization"));
+                    // Allows all headers
+                    config.setAllowedHeaders(Arrays.asList("*"));
                     // Caches the CORS preflight request for 1 hour
                     config.setMaxAge(3600L);
                     
