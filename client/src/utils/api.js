@@ -1,4 +1,5 @@
 import auth from "./auth";
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 // Function for making api calls with authentication
 const fetchApi = async (url, options = {}) => {
@@ -19,7 +20,7 @@ const fetchApi = async (url, options = {}) => {
     }
 
     // Makes the API call with the provided URL and options
-    const response = await fetch(url, { ...options, headers });
+    const response = await fetch(`${API_BASE_URL}${url}`, { ...options, headers });
     // Throws an error if the response status is not OK
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     // Parses and return the response as JSON
