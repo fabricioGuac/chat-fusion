@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+
 
 export default function ServerDown({ children }) {
     // State variables for teh status and the retry timer
@@ -10,7 +12,7 @@ export default function ServerDown({ children }) {
         // Checks the /actuator/health endpoint to verify server status
         const checkHealth = async () => {
             try {
-                const res = await fetch("/actuator/health");
+                const res = await fetch(`${API_BASE_URL}/actuator/health`);
                 const data = await res.json();
                 setIsUp(data.status === "UP");
             } catch (err) {
