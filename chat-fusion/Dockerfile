@@ -7,8 +7,8 @@ WORKDIR /app
 # Copies the project files into the container
 COPY . .
 
-# Builds the project (skipping tests)
-RUN ./mvnw clean install -DskipTests
+# Grants permissions and builds the project (skipping tests)
+RUN chmod +x mvnw && ./mvnw clean install -DskipTests
 
 # Java Runtime Enviroment to run the compiled project in (now no name)
 FROM eclipse-temurin:21-jre-alpine
