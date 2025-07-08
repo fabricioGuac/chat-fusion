@@ -57,8 +57,9 @@ public class SecurityConfig {
                 public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
 
                     CorsConfiguration config = new CorsConfiguration();
-                    // Allows requests from the development front end (http://localhost:3000)
-                    config.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
+                    // Allows requests from the development front end (http://localhost:3000 || https://chat-fusion1.netlify.app )
+                    config.setAllowedOrigins(Arrays.asList("http://localhost:3000",
+                                                                "https://chat-fusion1.netlify.app"));
                     // Allows all HTTP methods
                     config.setAllowedMethods(Collections.singletonList("*"));
                     // Allows cookies or credentials to be sent along with the request
