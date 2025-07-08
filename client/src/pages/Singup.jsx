@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
 import auth from "../utils/auth";
+import{ post }from "../utils/api"
 
 export default function Signup() {
 
@@ -53,28 +54,7 @@ export default function Signup() {
 
         try {
             // Sends signup request to the backend
-            const response = await fetch('/auth/signup', { 
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({
-                    username: form.username,
-                    email: form.email,
-                    password: form.password,
-                }),
-            });
-        
-            // Checks if the response is successful
-            if (!response.ok) {
-                const errorData = await response.json();
-                setErrorMessage(errorData.message || "An error occurred. Please try again.");
-                return;
-            }
-        
-            // Parses the response data and store JWT
-            const data = await response.json();
+            const data = await post('/auth/signup', form);
             // Stores JWT in local storage and redirects to dashboard
             auth.login(data.jwt);
         

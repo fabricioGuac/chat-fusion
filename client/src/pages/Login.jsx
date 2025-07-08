@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
 import auth from "../utils/auth";
+import { post } from "../utils/api";
 
 export default function Login() {
 
@@ -53,27 +54,7 @@ export default function Login() {
 
         try {
             // Sends login request to the backend
-            const response = await fetch('/auth/login', { 
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({
-                    email: form.email,
-                    password: form.password,
-                }),
-            });
-        
-            // Checks if the response is successful
-            if (!response.ok) {
-                const errorData = await response.json();
-                setErrorMessage(errorData.jwt || "An error occurred. Please try again.");
-                return;
-            }
-        
-            // Parses the response data and store JWT
-            const data = await response.json();
+            const data = await post('/auth/login', form);
             // Stores JWT in local storage and redirects to dashboard
             auth.login(data.jwt);
         
