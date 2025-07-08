@@ -1,5 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+// Uses process.env because the vite config runs at node level
+const backendUrl = process.env.VITE_API_URL || 'http://localhost:8080'
 
 export default defineConfig({
   plugins: [react()],
@@ -8,17 +10,17 @@ export default defineConfig({
     open: true,
     proxy: {
       '/auth': {
-        target: 'http://localhost:8080',
+        target: backendUrl,
         secure: false,
         changeOrigin: true,
       },
       '/api': {
-        target: 'http://localhost:8080',
+        target: backendUrl,
         secure: false,
         changeOrigin: true,
       },
       '/actuator': {
-        target: 'http://localhost:8080',
+        target: backendUrl,
         secure: false,
         changeOrigin: true,
       },

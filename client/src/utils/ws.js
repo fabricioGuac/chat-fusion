@@ -1,6 +1,8 @@
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client/dist/sockjs";
 
+const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+
 class WebSocketService{
     constructor(){
         // WebSocket client ref
@@ -16,7 +18,7 @@ class WebSocketService{
 
         this.client = new Client({
             // Uses SockJS as te websocket factory
-            webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
+            webSocketFactory: () => new SockJS(`${backendUrl}/ws`),
             // Sets reconnection attempts after 5 seconds
             reconnectDelay: 5000,
             // Debug log

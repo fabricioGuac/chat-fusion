@@ -16,7 +16,7 @@ public class SendMessageRequest {
 
 	
 	// Default no-arguments constructor
-		SendMessageRequest(){
+		public SendMessageRequest(){
 			
 		}
 		
