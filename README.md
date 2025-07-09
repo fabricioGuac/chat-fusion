@@ -2,24 +2,65 @@
 
 ## Description 
 
+**Chat Fusion** is a dynamic real-time messaging application that combines modern technologies to deliver a smooth, responsive chat experience. It supports one-on-one and group messaging, file sharing, audio notes, and even voice calls via WebRTC.
 
-
-## Instalation
-
+Built with:
+- **Java 21** and **Spring Boot** for the backend
+- **React** with **Vite** and **Redux** for the frontend
+- **WebSockets** for real-time communication
+- **WebRTC** for peer-to-peer audio calls
+- **MongoDB** for data persistence
+- **AWS S3** for media storage (images, audio, video)
 
 
 ## Usage
 
+1. **Sign Up / Log In**  
+   Create your account to access the chat interface.
 
+2. **Profile Customization**  
+   Click your avatar or username in the top-left to update your profile picture or change your display name.
+
+3. **Start a Chat**  
+   Click the “Start Chat” button, then search for users by their username or email to initiate a conversation.
+
+4. **Create a Group**  
+   Click “Create Group”, provide a group name, upload an image, and add members using the same user search.
+
+5. **Chat Interface**  
+   - Send **text messages**, **voice notes**, and **files** (images, audio, video).  
+   - Edit or delete your own messages.  
+   - Unread messages are tracked and displayed in the sidebar.  
+
+6. **Group Management** *(for admins)*  
+   Use the three-dot menu in the chat header:  
+   - Add/remove members  
+   - Promote users to admin  
+   - Edit group name or image  
+   - Delete the group entirely  
+
+7. **Voice Calling**  
+   Use the phone icon in the top-right of any chat to start a voice call with members. WebRTC handles peer-to-peer audio communication.
+
+8. **Leaving or Deleting Chats**  
+   Use the three-dot menu in the chat header:  
+   - Leave a group  
+   - Delete a one-on-one chat  
 
 ## Screenshot displaying the working app
 
-![Screenshot of the working app](./)
+![Screenshot of the working app](/client/public/chat-fusion-screenshot.png)
+
+## Live Demo
+
+[chat-fusion1.netlify.app](https://chat-fusion1.netlify.app)
+
+You can create an account or log in and start chatting right away.
 
 
 ## Credits
 
-This project is based on the [Whatsapp clone](https://www.youtube.com/watch?v=_f5CyVdarXw&list=PL7Oro2kvkIzKsDpydQkyO6I60uC0SyDje) series by code with zosh. While closely following the tutorial, I aim to extend its functionality by using MongoDB instead of MySQL, adding Kafka for messaging, integrating AWS S3 for file storage.
+This project began with guidance from the [Whatsapp Clone series by Code With Zosh](https://www.youtube.com/watch?v=_f5CyVdarXw&list=PL7Oro2kvkIzKsDpydQkyO6I60uC0SyDje), particularly for the initial Spring Boot setup. While the early backend structure was loosely inspired by the series, all logic, frontend architecture, UI/UX design, feature implementation, and infrastructure decisions were built independently over the following months.
 
 
 ## License
