@@ -4,7 +4,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 export default function ServerDown({ children }) {
     // State variables for teh status and the retry timer
-    const [isUp, setIsUp] = useState(null);
+    const [isUp, setIsUp] = useState(false);
     const [retryCount, setRetryCount] = useState(30);
     // UseReff for the interval
     const intervalRef = useRef(null);
@@ -64,16 +64,6 @@ export default function ServerDown({ children }) {
 
     // TODO: Consider adding a simple minigame while render server starts up 
 
-    // While wew wait for a response from the server check we display a message letting the user know we are checking the status
-    if (isUp === null) {
-        return (
-            <div className="bg-slate-950 h-screen flex justify-center items-center text-center">
-                <div className="bg-slate-800 p-8 rounded-lg shadow-lg">
-                    <h1 className="text-slate-300 text-2xl mb-4">Checking sever status, please wait a moment.</h1>
-                </div>
-            </div>
-        );
-    }
 
     // If server is down show a countdown until the next retry
     if (isUp === false) {
